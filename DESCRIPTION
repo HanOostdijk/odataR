@@ -1,0 +1,17 @@
+Package: odataR
+Type: Package
+Title: Read access to OData information
+Version: 0.1.0
+Author: Han Oostdijk
+Maintainer: Han Oostdijk <han.oostdijk@xs4all.nl>
+Description: (Read) access to OData information
+    Reading table and catalog information.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    httr,
+    jsonlite,
+    dplyr,
+    rlang
+RoxygenNote: 6.0.1
