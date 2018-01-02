@@ -1,0 +1,15 @@
+
+library(devtools)
+# create man entries from roxygen2 tags
+devtools::document()
+
+# creates a vignette template
+# devtools::use_vignette("vignette_odataR")
+
+# create the vignette
+# see create_vignette.txt
+devtools::build(manual=T,vignettes=T)
+
+# create a pdf document from the man entries
+# see create_PDF_manual.txt
+

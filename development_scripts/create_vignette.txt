@@ -1,0 +1,14 @@
+# See http://yihui.name/knitr/demo/vignette/
+# See http://kbroman.org/pkg_primer/pages/vignettes.html
+# See http://r-pkgs.had.co.nz/
+
+# creates the document in all versions: html and pdf
+
+rmarkdown::render("vignettes/vignette_odataR.rmd", "all")
+
+# apparently problems pointing to both a html and pdf version
+# because I prefer the html version in the help-version I copied the pdf-version 
+# to folder D:\data\R\odataR\development_scripts
+
+devtools::install('../odataR',build_vignettes=T)
+
