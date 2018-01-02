@@ -8,7 +8,6 @@ devtools::document()
 
 # create the vignette
 # see create_vignette.txt
-devtools::build(manual=T,vignettes=T)
 
 # create a pdf document from the man entries
 # see create_PDF_manual.txt

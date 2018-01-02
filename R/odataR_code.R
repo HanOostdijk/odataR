@@ -25,6 +25,7 @@
 #' @name odataR
 NULL
 
+#' @export
 odataR_query <- function (odata_url) {
 	hoqc_chr <- 'Error in fromJSON probably invalid url'
 	tryCatch(hoqc_chr  <- jsonlite::fromJSON(odata_url), error = function(e) e, finally = {})

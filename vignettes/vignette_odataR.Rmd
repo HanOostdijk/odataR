@@ -1,5 +1,5 @@
 ---
-title: "Using R package odataR for Statistics Netherlands data"
+title: "odataR for Statistics Netherlands data"
 author: "Han Oostdijk"
 date: "`r Sys.Date()`"
 vignette: > 
