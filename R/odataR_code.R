@@ -48,7 +48,7 @@ odataR_query <- function (odata_url) {
 	return(value)
 }
 
-#' Get table data or table meta data
+#' Get table data
 #'
 #' This is the main function of this package. It retrieves a data table from the data base and all dimensions are decoded. An (optional) query is executed in the database
 #' @param root Root of data structure
@@ -213,8 +213,18 @@ odataR_get_cat <- function(type='Tables',query=NULL) {
 #'  \item \code{'DataProperties'} : a \code{tibble} is retrieved with information about the columns of the table \cr
 #'  \item a dimension name : a \code{tibble} is retrieved with the code information of the dimension. \cr
 #' }
+#' @param query OData query to restrict data returned from the meta table
 #' @return A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
 #' @export
+#' @section Remarks:
+#' See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
+#'
+#' Queries should be specified without the preceeding '?'
+#' 
+#' No query is allowed on the DataProperties sub table
+#'
+#'\code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
+#'
 #' @examples
 #' \dontrun{
 #' odataR_set_root('http://dataderden.cbs.nl') ;
@@ -229,34 +239,36 @@ odataR_get_cat <- function(type='Tables',query=NULL) {
 odataR_get_meta <- function(
 		root     = odataR_get_root_data(),
 		table_id = NULL,
-		metatype = NULL) {
-	query    = URLencode('?$top=1')
+		metatype = NULL,
+		query    = NULL
+	) {
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
+	query    = URLencode(ifelse(is.null(query),'',paste0('?',query)))
 	subtabt  = odataR_query(paste0(bname, '?$format=json'))
 	if (!('url' %in% names(subtabt))) return(dplyr::data_frame())
 	if (is.null(metatype) | length(metatype) == 0)   return(subtabt)
 	subtabs  = subtabt$url
 	names(subtabs) = subtabt$name
 	if (metatype == 'TableInfos') {
-		url1     = subtabs['TableInfos']
+		url1     = paste0(subtabs['TableInfos'],query)
 		return(odataR_query(url1))
 	}
 	if (metatype == 'CategoryGroups') {
 		if (!('CategoryGroups' %in% names(subtabs))) return(dplyr::data_frame())
-		url1     = subtabs['CategoryGroups']
+		url1     = paste0(subtabs['CategoryGroups'],query)
 		return(odataR_query(url1))
 	}
 	url1     = subtabs['DataProperties']
 	props    = odataR_query(url1)
 	if (metatype == 'DataProperties') return(props)
-	url1     = paste0(subtabs['TypedDataSet'], query)
+	url1     = paste0(subtabs['TypedDataSet'], URLencode('?$top=1'))
 	df       = odataR_query(url1)
 	tv       = dplyr::filter(props, Key %in% names(df))
 	dv       = dplyr::select(
 		dplyr::filter(tv,Type %in% c('Dimension', 'TimeDimension', 'GeoDimension')),
 		'Key')
 	if (metatype %in% dv$Key) {
-		url1     = subtabs[metatype]
+		url1     = paste0(subtabs[metatype],query)
 		return(odataR_query(url1))
 	}
 	else return(dplyr::data_frame())

@@ -5,7 +5,7 @@
 \title{Get meta data about table}
 \usage{
 odataR_get_meta(root = odataR_get_root_data(), table_id = NULL,
-  metatype = NULL)
+  metatype = NULL, query = NULL)
 }
 \arguments{
 \item{root}{Root of data structure}
@@ -20,6 +20,8 @@ odataR_get_meta(root = odataR_get_root_data(), table_id = NULL,
  \item \code{'DataProperties'} : a \code{tibble} is retrieved with information about the columns of the table \cr
  \item a dimension name : a \code{tibble} is retrieved with the code information of the dimension. \cr
 }}
+
+\item{query}{OData query to restrict data returned from the catalog}
 }
 \value{
 A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
@@ -27,6 +29,17 @@ A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tib
 \description{
 This function can be used to get information about an OData table.
 }
+\section{Remarks}{
+
+See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
+
+Queries should be specified without the preceeding '?'
+
+No query is allowed on the DataProperties sub table
+
+\code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
+}
+
 \examples{
 \dontrun{
 odataR_set_root('http://dataderden.cbs.nl') ;

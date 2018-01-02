@@ -2,7 +2,7 @@
 % Please edit documentation in R/odataR_code.R
 \name{odataR_get_table}
 \alias{odataR_get_table}
-\title{Get table data or table meta data}
+\title{Get table data}
 \usage{
 odataR_get_table(root = odataR_get_root_data(), table_id = NULL,
   query = NULL, typed = T, keepcode = c())

@@ -1,0 +1,12 @@
+library(devtools)
+devtools::document()
+devtools::build(manual=T)
+setwd('d:/data/R/')
+devtools::install('odataR')
+
+devtools::use_vignette("vignette_odataR")
+
+devtools::build(manual=T,vignettes=T)
+
+setwd('d:/data/R/')
+devtools::install('odataR',build_vignettes=T)

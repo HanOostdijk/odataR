@@ -1,0 +1,197 @@
+---
+title: "Using R package odataR for Statistics Netherlands data"
+author: "Han Oostdijk"
+date: "`r Sys.Date()`"
+vignette: > 
+  %\VignetteIndexEntry{odataR for Statistics Netherlands data}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+output:
+  knitr:::html_vignette:
+    fig_caption: yes
+#  pdf_document:
+#    highlight: null
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Introduction
+The package was made because I was interested in the information of Statistics Netherlands.  
+The easiest tool method to do an adhoc query is using the Statline interface in the [Dutch](http://statline.cbs.nl/Statweb/) or [English](http://statline.cbs.nl/Statweb/?LA=en). It offers the possibility to pivot the various dimensions of the information and download the result to a csv (comma separated values) file or an Excel spreadsheet. And then the csv or Excel file can be read into the R environment for further processing.  
+However especially the handling of the headers is laborious in this way because it is different for each table/layout combination.  
+
+Getting the information in R is made easier by the **odataR** package. Using this package avoids the intermediary csv or Excel file. The code for getting the information of a table in a *data.frame* can be as easy as `   df=odataR_get_table(table_id='03759ned')`  
+when the  identification code of the table is *03759ned* .
+```{r echo=F}
+library(odataR)
+x = odataR_get_cat(query = "$filter= substringof('03759ned',Identifier)")
+```
+When you would execute this code it would result in a data.frame *df* with `r x$RecordCount` rows and  `r x$ColumnCount` columns. That is probably more data than information.  
+In this vignette I will show how to:  
+
+* indicate the location (*root*) of the OData structures. The default is set for the data of Statistics Netherlands so you don't have to do anything when you want to use that information. For other sources however you have to set the root.
+* use the catalog to find out the available tables and their characteristics.
+* find out the topics and dimensions of a table. There is a sub table for each dimension.
+* determine with these sub tables how to do queries on the dimensions to request more or less exactly the information that is needed.
+
+For a full example for retrieving and using the data of Statistics Netherland we use the following case study.
+
+### Case study
+For this case study I want to see if the number of persons in my municipality (Amstelveen) in various age groups remains relatively constant. So I will retrieve information about this and create a plot of the relative group size over various years. For retrieval of the data we use of course the **odataR** package but to report, manipulate and plot the data we use the following packages (**knitr** is used to display the tables in this vignette):
+```{r message=F,warning=F}
+library(knitr)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+```
+
+### Indicate where the OData information of Statistics Netherlands is located
+The user of the package has to indicate the location (*root*) of the OData structures. 
+Because I wrote the package with a special interest for the information of Statistics Netherlands it is not necessary to specify the *root* for the standard data of Statistics Netherlands: when no *root* is specified the software will always use the Statistics Netherlands data. But you can always check which *root* will be used with the `odataR_get_root` function:
+```{r}
+library(odataR)
+print(odataR_get_root())
+```
+```{r}
+
+```
+
+### Indicate where OData information other than that of Statistics Netherlands is located
+For other OData information the user of the package has to indicate the location (*root*) with the `odataR_set_root` function:
+```{r}
+odataR_set_root("https://dataderden.cbs.nl")
+print(odataR_get_root())
+```
+From now on the indicated url will be used as *root* until the moment that it is changed again with the `odataR_set_root` function. This function has as default argument the url of the OData structure of Statistics Netherlands:
+```{r}
+odataR_set_root()
+print(odataR_get_root())
+```
+
+### Find in the catalog which tables are available
+I know that the information I need is in the table with identification code  *03759ned* that was used in the example above.  
+But assuming that we don't know this, we have to use the catalog to find out (for the case study at least) which tables contain information about persons, in regions, with certain ages.
+The easiest way to find out this information is using the [ English](http://opendata.cbs.nl/dataportaal/portal.html?_la=en&_catalog=CBS) or 
+[Dutch](http://opendata.cbs.nl/dataportaal/portal.html?_la=nl&_catalog=CBS) visual web interface. When you have navigated through the catalog and reached the table that contains the  necessary information you can read in the catalog all meta data about the table. Because you want to use the **odataR** package it is important to take note of the identifier that you will later use as *table_id*.  
+Apart from viewing the catalog we can also do a query on the catalog. In the next code section we show how to retrieve the whole catalog in data.frame `cbscat` and to check which describing elements (fields) it contains by looking at the first record in the catalog:
+```{r}
+cbscat = odataR_get_cat()
+(dimcat = dim(cbscat))
+str(cbscat[1,])
+```
+From this we see that the catalog has `r dimcat[1]` rows and `r dimcat[2]` columns and that the field *ShortDescription* is probably suited to do a query on bevolking (population), leeftijd (age) and regio (region): 
+```{r results='asis'}
+x = odataR_get_cat(query = paste0("$filter=substringof('leeftijd',ShortDescription) ",
+  "and substringof('regio',ShortDescription) ", 
+  "and substringof('bevolking',ShortDescription) ",
+  "and substringof('Bevolking',ShortTitle)",
+  "&$select=Identifier,Title,ShortTitle,RecordCount,ColumnCount")) 
+kable(x,caption='results query leeftijd,bevolking,regio')
+``` 
+ 
+The results of the query, to which also the extra condition on the field *ShortTitle* was added to limit the number of results, can be found in *Table1*. Note that I did the selection query directly on the catalog and not on `cbscat`. The mean reason for that is to show how this can be done but in general selections done on the webserver are more efficient because the amount of data to transport from webserver to client is decreased in this way. Apart from the filter specification I also included a select statement in order to decrease the width of the table in this document. Normally such an intermediate table would be excluded from a document and in that case the select specification can be omitted. The *kable* statement serves only to get the result table included in the document. To avoid confusion I will hide further calls to *kable* in this document.  
+Of course the table with identification code  *03759ned* is in the table.
+
+```{r echo=F}
+cat_03759ned = x %>% filter(Identifier %in% c('03759ned'))
+```
+
+### Find information about table  *03759ned*
+In the CBS database a table name (table_id) points to a set of sub tables that together provide the information. One (or rather two but I will use only one) 'main' sub table contains the topic data with dimensions in coded form indicating where the topic data relates to. The other sub tables convey the meaning of the coded dimensions. E.g. a topic field could be the number of married male persons and the dimensions could be region and period.  
+
+We see from *Table1* that table  *03759ned* has `r cat_03759ned$RecordCount` rows and `r cat_03759ned$ColumnCount` columns. So it is worthwhile to create a query that exactly selects the information that is needed. 
+
+### DataProperties sub table
+First we use function `odataR_get_meta` to retrieve sub table *DataProperties* to see which are the topics and dimensions of the main table.
+
+```{r}
+props = odataR_get_meta(table_id='03759ned',metatype = 'DataProperties')
+x= props %>% select(Position,ParentID,Type,Key,Title)
+```
+```{r echo=F,results='asis'}
+kable(x,caption='properties of table 03759ned (first fields only)')
+``` 
+
+In *Table2* we see that there are three dimensions (in position 0, 1 and 2) and 18 topics (for the other positions) for which we will (in the case study) consider only the first topic:  
+
+* Key *Leeftijd*: dimension for ages and agegroups
+* Key *RegioS*: dimension for regions in the Netherlands
+* Key *Perioden*: dimension for periods
+* Key *MannenEnVrouwen_1* : the topic of the total number of persons (without distinction by gender) per combination of the dimensions. Other topics do makes this distinction and/or only consider (un)married or divorced or widowed persons.
+
+Because the case study wants to use the number of persons in certain age groups in Amstelveen I first have to check the sub tables for the dimensions to see how I can recognize these persons. Remember that I can easily code to retrieve the whole table with `df=odataR_get_table(table_id='03759ned')` but this would result in a *data.frame* of `r cat_03759ned$RecordCount` rows and  `r cat_03759ned$ColumnCount` columns. 
+
+### Check the *Leeftijd* dimension (ages and agegroups)
+By executing `x = odataR_get_meta(table_id='03759ned',metatype = 'Leeftijd')` we see that we get the ten-year age groups when we select the keys starting with a '3'. *Table3* shows these keys. Note that key 399 is the total for all the age groups
+```{r echo=F,results='asis'}
+x = odataR_get_meta(table_id='03759ned',metatype = 'Leeftijd',query="$filter=startswith(Key,'3')")
+kable(x,caption='keys for ten-year age groups')
+``` 
+
+### Check the *RegioS* dimension (regions)
+We can do a query on the *RegioS* sub table to try to find the code that is used for the municipality Amstelveen. We see in *Table4* that we will have to use key 'GM0362'. 
+```{r echo=T,results='asis'}
+x = odataR_get_meta(table_id='03759ned',metatype ='RegioS',
+		query="$filter=substringof('amstelveen',tolower(Title))")
+x= x %>% select(Key,Title)
+kable(x,caption='key(s) for region Amstelveen')
+``` 
+
+### Check the *Perioden* dimension (periods)
+By executing `x = odataR_get_meta(table_id='03759ned',metatype = 'Perioden')` we see in the results (*Table5*) that we get all available years without any grouping. So no filtering has to take place
+```{r echo=F,results='asis'}
+x = odataR_get_meta(table_id='03759ned',metatype = 'Perioden')
+kable(x,caption='keys for periods')
+``` 
+
+### Compose the query to get the required data
+So we now have the information to do a precise query for the information we need:
+```{r}
+Aveen= odataR_get_table(table_id='03759ned',
+     query=paste0("$filter=startswith(RegioS,'GM0362') ",
+       "and (startswith(Leeftijd,'30') or startswith(Leeftijd,'31'))&",
+       "$select=Perioden,Leeftijd,MannenEnVrouwen_1"))
+``` 
+Data.frame *Aveen* has `r dim(Aveen)[1]` rows and  `r dim(Aveen)[2]` columns. Remember the dimensions of the full table: `r cat_03759ned$RecordCount` rows and  `r cat_03759ned$ColumnCount` columns.  
+
+The remainder of the vignette shows how this information can be plotted.
+
+### Determine the distribution per period over age groups
+Per year we want to show the relative size of each age group. First we will translate the Dutch terms to English. In the second step we calculate the total number of persons in a year and in the third step we merge this total to the first table so that we can calculate percentages. In the last step we also ensure the correct sorting order by using the `factor` function.
+```{r}
+av1 = Aveen %>% 
+  select(period=Perioden,ageg=Leeftijd,persons=MannenEnVrouwen_1) %>%
+  mutate(ageg = gsub('jaar','year',ageg,fixed=T)) %>%
+  mutate(ageg = gsub('Jonger dan','Younger than',ageg,fixed=T)) %>%
+  mutate(ageg = gsub('of ouder','or older',ageg,fixed=T)) %>%
+  mutate(ageg = gsub('tot','till',ageg,fixed=T))
+av2 = av1 %>% 
+  group_by(period) %>%
+  summarise(tot = sum(persons))
+grps =  c("Younger than 10 year", "10 till 20 year", "20 till 30 year",
+         "30 till 40 year", "40 till 50 year", "50 till 60 year",
+         "60 till 70 year", "70 till 80 year", "80 till 90 year", 
+         "90 year or older")  
+av3 = av1 %>%
+  inner_join(av2,by=c('period'='period')) %>%
+  mutate(perc = 100*persons/tot,ageg = factor(ageg,levels=grps))
+```
+
+### Create barchart
+```{r}
+ggplot(data = av3, aes(x = period, y = perc, fill = ageg)) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_discrete(guide = guide_legend(title = 'Age group')) +
+  scale_x_discrete("year",breaks=seq(1986,2016,5)) +
+  ggtitle('Distribution inhabitants of Amstelveen by age groups ')
+```
+
+### Session Info
+```{r}
+sessionInfo()
+```
