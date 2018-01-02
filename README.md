@@ -37,14 +37,14 @@ Find in the catalog the tables with `bevolking` (population) in the `ShortDescri
 The `$filter`, `$select`, `$skip` and `$top` commands used in the examples 5 and further are elements of the query language for OData described in the [OData protocol v4](http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html) for version 4 and the 
 [OData protocol v3](http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/) for version 3. **The website of Statistics Netherlands is in progress of converting from version 3 to 4.**
 
-**NB** the queries specified in odataR should **not** include the `?` that is generated in the OData url.
-
 ## Additional information about odataR
-The folder *private* contains two PDFs with extra information:  
+The folder *development_scripts* contains three PDFs with extra information:  
 
 * *odataR.pdf* is the standard R help information in PDF format that is function oriented
 * *vignette_odataR.pdf* describes how to use the package in a 'real world' case
-* *Reading OData with MATLAB.pdf* describes how to replay the example in the vignette in the MATLAB world.
+* *Reading_OData_with_MATLAB.pdf* describes how to replay the example in the vignette in the MATLAB world.
+
+Apart from these PDFs the folder also contains some devtools statements that were used to build the package.
 
 ## Install odataR
 
