@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Han Oostdijk" />
+
+<meta name="date" content="2018-01-02" />
+
+<title>Using R package odataR for Statistics Netherlands data</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20800px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%2020px%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%200%3B%0Apadding%3A%204px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%3Anot%28%5Bclass%5D%29%20%7B%0Amargin%3A%20auto%3B%0Amin%2Dwidth%3A%2040%25%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%5Bsummary%3D%22R%20argblock%22%5D%20%7B%0Awidth%3A%20100%25%3B%0Aborder%3A%20none%3B%0A%7D%0Atable%3Anot%28%5Bclass%5D%29%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%3Anot%28%5Bclass%5D%29%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%3Anot%28%5Bclass%5D%29%2C%20table%3Anot%28%5Bclass%5D%29%20th%2C%20table%3Anot%28%5Bclass%5D%29%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%3Anot%28%5Bclass%5D%29%20tr%2Eodd%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%2013px%3B%0Apadding%2Dbottom%3A%201px%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f5f5f5%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0A%7D%0Apre%20%7B%0Aoverflow%2Dx%3A%20auto%3B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200%2010px%200%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20white%3B%0Aborder%3A%20%23f5f5f5%201px%20solid%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20code%20%7B%0Acolor%3A%20%23444%3B%0Abackground%2Dcolor%3A%20white%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20monospace%3B%0Afont%2Dsize%3A%2090%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%204px%3B%0Acolor%3A%20%23d14%3B%0Aborder%3A%201px%20solid%20%23e1e1e8%3B%0Awhite%2Dspace%3A%20inherit%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Atable%20%3E%20caption%2C%20div%2Efigure%20p%2Ecaption%20%7B%0Afont%2Dstyle%3A%20italic%3B%0A%7D%0Atable%20%3E%20caption%20span%2C%20div%2Efigure%20p%2Ecaption%20span%20%7B%0Afont%2Dstyle%3A%20normal%3B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%200%2010px%3B%0A%7D%0Atable%3Anot%28%5Bclass%5D%29%20%7B%0Amargin%3A%20auto%20auto%2010px%20auto%3B%0A%7D%0Aimg%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0Amax%2Dwidth%3A%20100%25%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f5f5f5%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f5f5f5%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f5f5f5%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Adiv%2Er%2Dhelp%2Dpage%20%7B%0Abackground%2Dcolor%3A%20%23f9f9f9%3B%0Aborder%2Dbottom%3A%20%23ddd%201px%20solid%3B%0Amargin%2Dbottom%3A%2010px%3B%0Apadding%3A%2010px%3B%0A%7D%0Adiv%2Er%2Dhelp%2Dpage%3Ahover%20%7B%0Abackground%2Dcolor%3A%20%23f4f4f4%3B%0A%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using R package odataR for Statistics Netherlands data</h1>
+<h4 class="author"><em>Han Oostdijk</em></h4>
+<h4 class="date"><em>2018-01-02</em></h4>
+
+
+
+<div id="introduction" class="section level3">
+<h3>Introduction</h3>
+<p>The package was made because I was interested in the information of Statistics Netherlands.<br />
+The easiest tool method to do an adhoc query is using the Statline interface in the <a href="http://statline.cbs.nl/Statweb/">Dutch</a> or <a href="http://statline.cbs.nl/Statweb/?LA=en">English</a>. It offers the possibility to pivot the various dimensions of the information and download the result to a csv (comma separated values) file or an Excel spreadsheet. And then the csv or Excel file can be read into the R environment for further processing.<br />
+However especially the handling of the headers is laborious in this way because it is different for each table/layout combination.</p>
+<p>Getting the information in R is made easier by the <strong>odataR</strong> package. Using this package avoids the intermediary csv or Excel file. The code for getting the information of a table in a <em>data.frame</em> can be as easy as <code>df=odataR_get_table(table_id='03759ned')</code><br />
+when the identification code of the table is <em>03759ned</em> .</p>
+<p>When you would execute this code it would result in a data.frame <em>df</em> with 3491250 rows and 18 columns. That is probably more data than information.<br />
+In this vignette we will show how to:</p>
+<ul>
+<li>indicate the location (<em>root</em>) of the OData structures. The default is set for the data of Statistics Netherlands so you don’t have to do anything when you want to use that information. For other sources however you have to set the root.</li>
+<li>use the catalog to find out the available tables and their characteristics.</li>
+<li>find out the topics and dimensions of a table. There is a subtable for each dimension.</li>
+<li>determine with these subtables how to do queries on the dimensions to request more or less exactly the information that is needed.</li>
+</ul>
+<p>For a full example for retrieving and using the data of Statistics Netherland we use the following case study.</p>
+</div>
+<div id="case-study" class="section level3">
+<h3>Case study</h3>
+<p>For this case study we want to see if the number of persons in my municipality (Amstelveen) in various age groups remains relatively constant. So we need to retrieve information about this and create a plot of the relative group size over various years. For retrieval of the data we use of course the <strong>odataR</strong> package but to report, manipulate and plot the data we use the following packages (<strong>knitr</strong> is used to display the tables in this vignette):</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(knitr)
+<span class="kw">library</span>(ggplot2)
+<span class="kw">library</span>(magrittr)
+<span class="kw">library</span>(dplyr)</code></pre></div>
+</div>
+<div id="indicate-where-the-odata-information-of-statistics-netherlands-is-located" class="section level3">
+<h3>Indicate where the OData information of Statistics Netherlands is located</h3>
+<p>The user of the package has to indicate the location (<em>root</em>) of the OData structures. Because the package was writtem with a special interest for the information of Statistics Netherlands it is not necessary to specify the <em>root</em> for the standard data of Statistics Netherlands: when no <em>root</em> is specified the software will always use the Statistics Netherlands data. But you can always check which <em>root</em> will be used with the <code>odataR_get_root</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(odataR)
+<span class="kw">print</span>(<span class="kw">odataR_get_root</span>())
+<span class="co">#&gt; [1] &quot;https://opendata.cbs.nl&quot;</span></code></pre></div>
+</div>
+<div id="indicate-where-odata-information-other-than-that-of-statistics-netherlands-is-located" class="section level3">
+<h3>Indicate where OData information other than that of Statistics Netherlands is located</h3>
+<p>For other OData information the user of the package has to indicate the location (<em>root</em>) with the <code>odataR_set_root</code> function:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">odataR_set_root</span>(<span class="st">&quot;https://dataderden.cbs.nl&quot;</span>)
+<span class="kw">print</span>(<span class="kw">odataR_get_root</span>())
+<span class="co">#&gt; [1] &quot;https://dataderden.cbs.nl&quot;</span></code></pre></div>
+<p>From now on the indicated url will be used as <em>root</em> until the moment that it is changed again with the <code>odataR_set_root</code> function. This function has as default argument the url of the OData structure of Statistics Netherlands:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">odataR_set_root</span>()
+<span class="kw">print</span>(<span class="kw">odataR_get_root</span>())
+<span class="co">#&gt; [1] &quot;https://opendata.cbs.nl&quot;</span></code></pre></div>
+</div>
+<div id="find-in-the-catalog-which-tables-are-available" class="section level3">
+<h3>Find in the catalog which tables are available</h3>
+<p>We know that the information we need is in the table with identification code <em>03759ned</em> that was used in the example above.<br />
+But assuming that we don’t know this, we have to use the catalog to find out which tables contain information about persons, in regions, with certain ages. The easiest way to find out this information is using the <a href="http://opendata.cbs.nl/dataportaal/portal.html?_la=en&amp;_catalog=CBS">English</a> or <a href="http://opendata.cbs.nl/dataportaal/portal.html?_la=nl&amp;_catalog=CBS">Dutch</a> visual web interface. When you have navigated through the catalog and reached the table that contains the necessary information you can read in the catalog all meta data about the table. Because you want to use the <strong>odataR</strong> package it is important to take note of the identifier that you will later use as <em>table_id</em>.<br />
+Apart from viewing the catalog we can also do a query on the catalog. In the next code section we show how to retrieve the whole catalog in data.frame <code>cbscat</code> and to check which describing elements (fields) it contains by looking at the first record in the catalog:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cbscat =<span class="st"> </span><span class="kw">odataR_get_cat</span>()
+(<span class="dt">dimcat =</span> <span class="kw">dim</span>(cbscat))
+<span class="co">#&gt; [1] 4179   26</span>
+<span class="kw">str</span>(cbscat[<span class="dv">1</span>,])
+<span class="co">#&gt; 'data.frame':    1 obs. of  26 variables:</span>
+<span class="co">#&gt;  $ Updated            : chr &quot;2012-08-17T02:00:00&quot;</span>
+<span class="co">#&gt;  $ ID                 : int 0</span>
+<span class="co">#&gt;  $ Identifier         : chr &quot;80339ned&quot;</span>
+<span class="co">#&gt;  $ Title              : chr &quot;Banen van werknemers; bedrijfsgrootte en economische activiteit, 2006-2009&quot;</span>
+<span class="co">#&gt;  $ ShortTitle         : chr &quot;Banen; bedrijfsgrootte, 2006-2009&quot;</span>
+<span class="co">#&gt;  $ ShortDescription   : chr &quot; \nDeze tabel geeft informatie over het aantal banen van werknemers naar bedrijfsgrootte. Voor de indeling naar&quot;| __truncated__</span>
+<span class="co">#&gt;  $ Summary            : chr &quot;Banen van werknemers per bedrijfsgrootte \nbedrijfstakken en branches SBI '93&quot;</span>
+<span class="co">#&gt;  $ Modified           : chr &quot;2012-08-17T02:00:00&quot;</span>
+<span class="co">#&gt;  $ MetaDataModified   : chr &quot;2012-08-17T02:00:00&quot;</span>
+<span class="co">#&gt;  $ ReasonDelivery     : chr &quot;Verbetering&quot;</span>
+<span class="co">#&gt;  $ ExplanatoryText    : chr &quot;&quot;</span>
+<span class="co">#&gt;  $ OutputStatus       : chr &quot;Gediscontinueerd&quot;</span>
+<span class="co">#&gt;  $ Source             : chr &quot;CBS.&quot;</span>
+<span class="co">#&gt;  $ Language           : chr &quot;nl&quot;</span>
+<span class="co">#&gt;  $ Catalog            : chr &quot;CBS&quot;</span>
+<span class="co">#&gt;  $ Frequency          : chr &quot;Stopgezet&quot;</span>
+<span class="co">#&gt;  $ Period             : chr &quot;2006 - 2009&quot;</span>
+<span class="co">#&gt;  $ SummaryAndLinks    : chr &quot;Banen van werknemers per bedrijfsgrootte &lt;br /&gt;bedrijfstakken en branches SBI '93&lt;br /&gt;&lt;a href=\&quot;http://opendat&quot;| __truncated__</span>
+<span class="co">#&gt;  $ ApiUrl             : chr &quot;https://opendata.cbs.nl/ODataApi/OData/80339ned&quot;</span>
+<span class="co">#&gt;  $ FeedUrl            : chr &quot;https://opendata.cbs.nl/ODataFeed/OData/80339ned&quot;</span>
+<span class="co">#&gt;  $ DefaultPresentation: chr &quot;graphType=table&quot;</span>
+<span class="co">#&gt;  $ DefaultSelection   : chr &quot;&quot;</span>
+<span class="co">#&gt;  $ GraphTypes         : chr &quot;Table,Bar,Line&quot;</span>
+<span class="co">#&gt;  $ RecordCount        : int 392</span>
+<span class="co">#&gt;  $ ColumnCount        : int 8</span>
+<span class="co">#&gt;  $ SearchPriority     : chr &quot;1&quot;</span></code></pre></div>
+<p>From this we see that the catalog has 4179 rows and 26 columns and that the field <em>ShortDescription</em> is probably suited to do a query on bevolking (population), leeftijd (age) and regio (region):</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x =<span class="st"> </span><span class="kw">odataR_get_cat</span>(<span class="dt">query =</span> <span class="kw">paste0</span>(<span class="st">&quot;?$filter=substringof('leeftijd',tolower(ShortDescription))&quot;</span>,
+  <span class="st">&quot;and substringof('regio',tolower(ShortDescription)) &quot;</span>, 
+  <span class="st">&quot;and substringof('bevolking',tolower(ShortDescription)) &quot;</span>,
+  <span class="st">&quot;and substringof('bevolking',tolower(ShortTitle))&quot;</span>,
+  <span class="st">&quot;&amp;$select=Identifier,Title,ShortTitle,RecordCount,ColumnCount&quot;</span>)) 
+<span class="kw">kable</span>(x,<span class="dt">caption=</span><span class="st">'results query leeftijd,bevolking,regio'</span>)</code></pre></div>
+<table>
+<caption>results query leeftijd,bevolking,regio</caption>
+<thead>
+<tr class="header">
+<th align="left">Identifier</th>
+<th align="left">Title</th>
+<th align="left">ShortTitle</th>
+<th align="right">RecordCount</th>
+<th align="right">ColumnCount</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">83491NED</td>
+<td align="left">Regionale prognose 2017-2040; bevolking, intervallen, regio-indeling 2015</td>
+<td align="left">Bevolking; intervallen, 2017-2040, regio</td>
+<td align="right">128448</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="left">83489NED</td>
+<td align="left">Regionale prognose 2017-2040; bevolking, regio-indeling 2015</td>
+<td align="left">Bevolking; leeftijd, 2017-2040, regio</td>
+<td align="right">287928</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">82220NED</td>
+<td align="left">Regionale prognose 2014-2040; kerncijfers, regio-indeling 2013</td>
+<td align="left">Bevolking; kerncijfers, regio, 2014-2040</td>
+<td align="right">2376</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="left">82172NED</td>
+<td align="left">Regionale prognose 2014-2040; bevolking, regio-indeling 2013</td>
+<td align="left">Bevolking; leeftijd, regio, 2014-2040</td>
+<td align="right">242352</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">70648ned</td>
+<td align="left">Bevolking op 1 januari; leeftijd, geboorteland en regio</td>
+<td align="left">Bevolking; geboorteland en regio</td>
+<td align="right">5395896</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">37713</td>
+<td align="left">Bevolking; leeftijd, herkomstgroepering, geslacht en regio, 1 januari</td>
+<td align="left">Bevolking; herkomstgroepering en regio</td>
+<td align="right">19610976</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td align="left">70634ned</td>
+<td align="left">Bevolking; geslacht, leeftijd, nationaliteit en regio, 1 januari</td>
+<td align="left">Bevolking; nationaliteit, regio</td>
+<td align="right">3197568</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="left">03759ned</td>
+<td align="left">Bevolking; geslacht, leeftijd, burgerlijke staat en regio, 1 januari</td>
+<td align="left">Bevolking; leeftijd, regio</td>
+<td align="right">3491250</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">70233ned</td>
+<td align="left">Gemiddelde bevolking; geslacht, leeftijd, burgerlijke staat en regio</td>
+<td align="left">Gemiddelde bevolking; leeftijd, regio</td>
+<td align="right">2176746</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="left">71887ned</td>
+<td align="left">Beroepsbevolking; regio’s 1996-2013</td>
+<td align="left">Beroepsbevolking; regio’s 1996-2013</td>
+<td align="right">18069</td>
+<td align="right">84</td>
+</tr>
+<tr class="odd">
+<td align="left">80283ned</td>
+<td align="left">Regionale prognose bevolkingsopbouw;2009-2040</td>
+<td align="left">Bevolkingsopbouw gemeenten 2009-2040</td>
+<td align="right">1713804</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">71548ned</td>
+<td align="left">Regionale prognose bevolkingsopbouw; 2007-2025</td>
+<td align="left">Bevolkingsopbouw gemeenten 2007-2025</td>
+<td align="right">998784</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td align="left">71188ned</td>
+<td align="left">Regionale prognose bevolkingsopbouw; 2005-2025</td>
+<td align="left">Bevolkingsopbouw gemeenten 2005-2025</td>
+<td align="right">1158720</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="left">81273ned</td>
+<td align="left">Regionale prognose bevolkingsopbouw; 2011-2040</td>
+<td align="left">Bevolkingsopbouw gemeenten 2011-2040</td>
+<td align="right">1535202</td>
+<td align="right">13</td>
+</tr>
+</tbody>
+</table>
+<p>The results of the query, to which also the extra condition on the field <em>ShortTitle</em> was added to limit the number of results, can be found in <em>Table1</em>. Note that we did the selection query directly on the catalog and not on <code>cbscat</code>. The mean reason for that is showing how this can be done but in general selections done on the webserver are more efficient because the amount of data to transport from webserver to client is decreased in this way. Apart from the filter specification we also included a select statement in order to decrease the width of the table in this document. Normally such an intermediate table would be excluded from a document and in that case the select specification can be omitted. The <em>kable</em> statement serves only to get the result table included in the document. To avoid confusion further calls to <em>kable</em> will be hidden in this document.<br />
+Of course the table with identification code <em>03759ned</em> is in the table.</p>
+</div>
+<div id="find-information-about-table-03759ned" class="section level3">
+<h3>Find information about table <em>03759ned</em></h3>
+<p>In the CBS database a table name (table_id) points to a set of subtables that together provide the information. The ‘main’ subtable <em>TypedDataset</em> (or alternatively <em>UntypedDataset</em>) contains the topic data with dimensions in coded form indicating where the topic data relates to. The other subtables convey the meaning of the coded dimensions. E.g. a topic field could be the number of married male persons and the dimensions could be region and period.</p>
+<p>We see from <em>Table1</em> that table <em>03759ned</em> has 3491250 rows and 18 columns. So it is worthwhile to create a query that exactly selects the information that is needed.</p>
+</div>
+<div id="dataproperties-subtable" class="section level3">
+<h3>DataProperties subtable</h3>
+<p>First we use function <code>odataR_get_meta</code> to retrieve subtable <em>DataProperties</em> to see which are the topics and dimensions of the main table.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">props =<span class="st"> </span><span class="kw">odataR_get_meta</span>(<span class="dt">table_id=</span><span class="st">'03759ned'</span>,<span class="dt">metatype =</span> <span class="st">'DataProperties'</span>)
+x=<span class="st"> </span>props <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(Position,ParentID,Type,Key,Title)</code></pre></div>
+<table>
+<caption>properties of table 03759ned (first fields only)</caption>
+<thead>
+<tr class="header">
+<th align="right">Position</th>
+<th align="right">ParentID</th>
+<th align="left">Type</th>
+<th align="left">Key</th>
+<th align="left">Title</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0</td>
+<td align="right">NA</td>
+<td align="left">Dimension</td>
+<td align="left">Leeftijd</td>
+<td align="left">Leeftijd</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="right">NA</td>
+<td align="left">GeoDimension</td>
+<td align="left">RegioS</td>
+<td align="left">Regio’s</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">NA</td>
+<td align="left">TimeDimension</td>
+<td align="left">Perioden</td>
+<td align="left">Perioden</td>
+</tr>
+<tr class="even">
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">TopicGroup</td>
+<td align="left"></td>
+<td align="left">Bevolking naar geslacht</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="left">Topic</td>
+<td align="left">MannenEnVrouwen_1</td>
+<td align="left">Mannen en vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">3</td>
+<td align="left">Topic</td>
+<td align="left">Mannen_2</td>
+<td align="left">Mannen</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">3</td>
+<td align="left">Topic</td>
+<td align="left">Vrouwen_3</td>
+<td align="left">Vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">TopicGroup</td>
+<td align="left"></td>
+<td align="left">Bevolking: ongehuwd naar geslacht</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="right">7</td>
+<td align="left">Topic</td>
+<td align="left">MannenEnVrouwen_4</td>
+<td align="left">Mannen en vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="right">7</td>
+<td align="left">Topic</td>
+<td align="left">Mannen_5</td>
+<td align="left">Mannen</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="right">7</td>
+<td align="left">Topic</td>
+<td align="left">Vrouwen_6</td>
+<td align="left">Vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">TopicGroup</td>
+<td align="left"></td>
+<td align="left">Bevolking: gehuwd naar geslacht</td>
+</tr>
+<tr class="odd">
+<td align="right">9</td>
+<td align="right">11</td>
+<td align="left">Topic</td>
+<td align="left">MannenEnVrouwen_7</td>
+<td align="left">Mannen en vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="right">11</td>
+<td align="left">Topic</td>
+<td align="left">Mannen_8</td>
+<td align="left">Mannen</td>
+</tr>
+<tr class="odd">
+<td align="right">11</td>
+<td align="right">11</td>
+<td align="left">Topic</td>
+<td align="left">Vrouwen_9</td>
+<td align="left">Vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">TopicGroup</td>
+<td align="left"></td>
+<td align="left">Bevolking: verweduwd naar geslacht</td>
+</tr>
+<tr class="odd">
+<td align="right">12</td>
+<td align="right">15</td>
+<td align="left">Topic</td>
+<td align="left">MannenEnVrouwen_10</td>
+<td align="left">Mannen en vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">13</td>
+<td align="right">15</td>
+<td align="left">Topic</td>
+<td align="left">Mannen_11</td>
+<td align="left">Mannen</td>
+</tr>
+<tr class="odd">
+<td align="right">14</td>
+<td align="right">15</td>
+<td align="left">Topic</td>
+<td align="left">Vrouwen_12</td>
+<td align="left">Vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">TopicGroup</td>
+<td align="left"></td>
+<td align="left">Bevolking: gescheiden naar geslacht</td>
+</tr>
+<tr class="odd">
+<td align="right">15</td>
+<td align="right">19</td>
+<td align="left">Topic</td>
+<td align="left">MannenEnVrouwen_13</td>
+<td align="left">Mannen en vrouwen</td>
+</tr>
+<tr class="even">
+<td align="right">16</td>
+<td align="right">19</td>
+<td align="left">Topic</td>
+<td align="left">Mannen_14</td>
+<td align="left">Mannen</td>
+</tr>
+<tr class="odd">
+<td align="right">17</td>
+<td align="right">19</td>
+<td align="left">Topic</td>
+<td align="left">Vrouwen_15</td>
+<td align="left">Vrouwen</td>
+</tr>
+</tbody>
+</table>
+<p>In <em>Table2</em> we see that there are three dimensions (in position 0, 1 and 2) and 18 topics (for the other positions) for which we will (in the case study) consider only the first topic:</p>
+<ul>
+<li>Key <em>Leeftijd</em>: dimension for ages and agegroups</li>
+<li>Key <em>RegioS</em>: dimension for regions in the Netherlands</li>
+<li>Key <em>Perioden</em>: dimension for periods</li>
+<li>Key <em>MannenEnVrouwen_1</em> : the topic of the total number of persons (without distinction by gender) per combination of the dimensions. Other topics do makes this distinction and/or only consider (un)married or divorced or widowed persons.</li>
+</ul>
+<p>Because the case study wants to use the number of persons in certain age groups in Amstelveen we first have to check the subtables for the dimensions to see how we can recognize these persons. Remember that one can easily code to retrieve the whole table with <code>df=odataR_get_table(table_id='03759ned')</code> but this would result in a <em>data.frame</em> of 3491250 rows and 18 columns.</p>
+</div>
+<div id="check-the-leeftijd-dimension-ages-and-agegroups" class="section level3">
+<h3>Check the <em>Leeftijd</em> dimension (ages and agegroups)</h3>
+<p>By executing <code>x = odataR_get_meta(table_id='03759ned',metatype = 'Leeftijd')</code> we see that we get the ten-year age groups when we select the keys starting with a ‘3’. <em>Table3</em> shows these keys. Note that key 399 is the total for all the age groups</p>
+<table>
+<caption>keys for ten-year age groups</caption>
+<thead>
+<tr class="header">
+<th align="left">Key</th>
+<th align="left">Title</th>
+<th align="left">Description</th>
+<th align="right">CategoryGroupID</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">399</td>
+<td align="left">Totaal leeftijden</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">301</td>
+<td align="left">Jonger dan 10 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">302</td>
+<td align="left">10 tot 20 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">303</td>
+<td align="left">20 tot 30 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">304</td>
+<td align="left">30 tot 40 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">305</td>
+<td align="left">40 tot 50 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">306</td>
+<td align="left">50 tot 60 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">307</td>
+<td align="left">60 tot 70 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">308</td>
+<td align="left">70 tot 80 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">309</td>
+<td align="left">80 tot 90 jaar</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">310</td>
+<td align="left">90 jaar of ouder</td>
+<td align="left">NA</td>
+<td align="right">4</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="check-the-regios-dimension-regions" class="section level3">
+<h3>Check the <em>RegioS</em> dimension (regions)</h3>
+<p>We can do a query on the <em>RegioS</em> subtable to try to find the code that is used for the municipality Amstelveen. We see in <em>Table4</em> that we will have to use key ‘GM0362’.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x =<span class="st"> </span><span class="kw">odataR_get_meta</span>(<span class="dt">table_id=</span><span class="st">'03759ned'</span>,<span class="dt">metatype =</span><span class="st">'RegioS'</span>,
+        <span class="dt">query=</span><span class="st">&quot;?$filter=substringof('amstelveen',tolower(Title))&quot;</span>)
+x=<span class="st"> </span>x <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(Key,Title)
+<span class="kw">kable</span>(x,<span class="dt">caption=</span><span class="st">'key(s) for region Amstelveen'</span>)</code></pre></div>
+<table>
+<caption>key(s) for region Amstelveen</caption>
+<thead>
+<tr class="header">
+<th align="left">Key</th>
+<th align="left">Title</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">GM0362</td>
+<td align="left">Amstelveen</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="check-the-perioden-dimension-periods" class="section level3">
+<h3>Check the <em>Perioden</em> dimension (periods)</h3>
+<p>By executing <code>x = odataR_get_meta(table_id='03759ned',metatype = 'Perioden')</code> we see in the results (<em>Table5</em>) that we get all available years without any grouping. So no filtering has to take place</p>
+<table>
+<caption>keys for periods</caption>
+<thead>
+<tr class="header">
+<th align="left">Key</th>
+<th align="left">Title</th>
+<th align="left">Description</th>
+<th align="left">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1988JJ00</td>
+<td align="left">1988</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">1989JJ00</td>
+<td align="left">1989</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">1990JJ00</td>
+<td align="left">1990</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">1991JJ00</td>
+<td align="left">1991</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">1992JJ00</td>
+<td align="left">1992</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">1993JJ00</td>
+<td align="left">1993</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">1994JJ00</td>
+<td align="left">1994</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">1995JJ00</td>
+<td align="left">1995</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">1996JJ00</td>
+<td align="left">1996</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">1997JJ00</td>
+<td align="left">1997</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">1998JJ00</td>
+<td align="left">1998</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">1999JJ00</td>
+<td align="left">1999</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2000JJ00</td>
+<td align="left">2000</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2001JJ00</td>
+<td align="left">2001</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2002JJ00</td>
+<td align="left">2002</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2003JJ00</td>
+<td align="left">2003</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2004JJ00</td>
+<td align="left">2004</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2005JJ00</td>
+<td align="left">2005</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2006JJ00</td>
+<td align="left">2006</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2007JJ00</td>
+<td align="left">2007</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2008JJ00</td>
+<td align="left">2008</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2009JJ00</td>
+<td align="left">2009</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2010JJ00</td>
+<td align="left">2010</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2011JJ00</td>
+<td align="left">2011</td>
+<td align="left"></td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2012JJ00</td>
+<td align="left">2012</td>
+<td align="left"></td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2013JJ00</td>
+<td align="left">2013</td>
+<td align="left"></td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2014JJ00</td>
+<td align="left">2014</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2015JJ00</td>
+<td align="left">2015</td>
+<td align="left"></td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="odd">
+<td align="left">2016JJ00</td>
+<td align="left">2016</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+<tr class="even">
+<td align="left">2017JJ00</td>
+<td align="left">2017</td>
+<td align="left">NA</td>
+<td align="left">Definitief</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="compose-the-query-to-get-the-required-data" class="section level3">
+<h3>Compose the query to get the required data</h3>
+<p>So we now have the information to do a precise query for the information we need:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Aveen=<span class="st"> </span><span class="kw">odataR_get_table</span>(<span class="dt">table_id=</span><span class="st">'03759ned'</span>,
+     <span class="dt">query=</span><span class="kw">paste0</span>(<span class="st">&quot;?$filter=startswith(RegioS,'GM0362') &quot;</span>,
+       <span class="st">&quot;and (startswith(Leeftijd,'30') or startswith(Leeftijd,'31'))&amp;&quot;</span>,
+       <span class="st">&quot;$select=Perioden,Leeftijd,MannenEnVrouwen_1&quot;</span>))</code></pre></div>
+<p>Data.frame <em>Aveen</em> has 300 rows and 3 columns. Remember the dimensions of the full table: 3491250 rows and 18 columns.</p>
+<p>The remainder of the vignette shows how this information can be plotted.</p>
+</div>
+<div id="determine-the-distribution-per-period-over-age-groups" class="section level3">
+<h3>Determine the distribution per period over age groups</h3>
+<p>Per year we want to show the relative size of each age group. First we will translate the Dutch terms to English. In the second step we calculate the total number of persons in a year and in the third step we merge this total to the first table so that we can calculate percentages. In the last step we also ensure the correct sorting order by using the <code>factor</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">av1 =<span class="st"> </span>Aveen <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">select</span>(<span class="dt">period=</span>Perioden,<span class="dt">ageg=</span>Leeftijd,<span class="dt">persons=</span>MannenEnVrouwen_<span class="dv">1</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ageg =</span> <span class="kw">gsub</span>(<span class="st">'jaar'</span>,<span class="st">'year'</span>,ageg,<span class="dt">fixed=</span>T)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ageg =</span> <span class="kw">gsub</span>(<span class="st">'Jonger dan'</span>,<span class="st">'Younger than'</span>,ageg,<span class="dt">fixed=</span>T)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ageg =</span> <span class="kw">gsub</span>(<span class="st">'of ouder'</span>,<span class="st">'or older'</span>,ageg,<span class="dt">fixed=</span>T)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ageg =</span> <span class="kw">gsub</span>(<span class="st">'tot'</span>,<span class="st">'till'</span>,ageg,<span class="dt">fixed=</span>T))
+av2 =<span class="st"> </span>av1 <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">group_by</span>(period) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">tot =</span> <span class="kw">sum</span>(persons))
+grps =<span class="st">  </span><span class="kw">c</span>(<span class="st">&quot;Younger than 10 year&quot;</span>, <span class="st">&quot;10 till 20 year&quot;</span>, <span class="st">&quot;20 till 30 year&quot;</span>,
+         <span class="st">&quot;30 till 40 year&quot;</span>, <span class="st">&quot;40 till 50 year&quot;</span>, <span class="st">&quot;50 till 60 year&quot;</span>,
+         <span class="st">&quot;60 till 70 year&quot;</span>, <span class="st">&quot;70 till 80 year&quot;</span>, <span class="st">&quot;80 till 90 year&quot;</span>, 
+         <span class="st">&quot;90 year or older&quot;</span>)  
+av3 =<span class="st"> </span>av1 <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">inner_join</span>(av2,<span class="dt">by=</span><span class="kw">c</span>(<span class="st">'period'</span>=<span class="st">'period'</span>)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">perc =</span> <span class="dv">100</span><span class="op">*</span>persons<span class="op">/</span>tot,<span class="dt">ageg =</span> <span class="kw">factor</span>(ageg,<span class="dt">levels=</span>grps))</code></pre></div>
+</div>
+<div id="create-barchart" class="section level3">
+<h3>Create barchart</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> av3, <span class="kw">aes</span>(<span class="dt">x =</span> period, <span class="dt">y =</span> perc, <span class="dt">fill =</span> ageg)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">stat =</span> <span class="st">&quot;identity&quot;</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_fill_discrete</span>(<span class="dt">guide =</span> <span class="kw">guide_legend</span>(<span class="dt">title =</span> <span class="st">'Age group'</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_discrete</span>(<span class="st">&quot;year&quot;</span>,<span class="dt">breaks=</span><span class="kw">seq</span>(<span class="dv">1986</span>,<span class="dv">2016</span>,<span class="dv">5</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">ggtitle</span>(<span class="st">'Distribution inhabitants of Amstelveen by age groups '</span>)</code></pre></div>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+</div>
+<div id="references" class="section level3">
+<h3>References</h3>
+<ul>
+<li>A introduction to OData : <a href="https://msdn.microsoft.com/en-us/data/hh237663.aspx">Introducing OData</a></li>
+<li>Details OData : <a href="http://www.odata.org/">OData - the best way to REST</a></li>
+<li>CBS (Statistics Netherlands) OData environment: <a href="https://www.cbs.nl/-/media/statline/documenten/handleiding-cbs-opendata-services.pdf?la=nl-nl">Handleiding CBS Open Data Services</a> (in Dutch)</li>
+<li>CBS (Statistics Netherlands) services: <a href="https://www.cbs.nl/nl-nl/onze-diensten/open-data">Open data</a> (in Dutch)</li>
+<li><a href="http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html">OData protocol v4</a></li>
+<li><a href="http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/">OData protocol v3</a></li>
+</ul>
+</div>
+<div id="session-info" class="section level3">
+<h3>Session Info</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sessionInfo</span>()
+<span class="co">#&gt; R version 3.4.1 (2017-06-30)</span>
+<span class="co">#&gt; Platform: x86_64-w64-mingw32/x64 (64-bit)</span>
+<span class="co">#&gt; Running under: Windows &gt;= 8 x64 (build 9200)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Matrix products: default</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; locale:</span>
+<span class="co">#&gt; [1] LC_COLLATE=English_United States.1252 </span>
+<span class="co">#&gt; [2] LC_CTYPE=English_United States.1252   </span>
+<span class="co">#&gt; [3] LC_MONETARY=English_United States.1252</span>
+<span class="co">#&gt; [4] LC_NUMERIC=C                          </span>
+<span class="co">#&gt; [5] LC_TIME=English_United States.1252    </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; attached base packages:</span>
+<span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; other attached packages:</span>
+<span class="co">#&gt; [1] bindrcpp_0.2  dplyr_0.7.4   magrittr_1.5  ggplot2_2.2.1 knitr_1.18   </span>
+<span class="co">#&gt; [6] odataR_0.1.0 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; loaded via a namespace (and not attached):</span>
+<span class="co">#&gt;  [1] Rcpp_0.12.14     bindr_0.1        munsell_0.4.3    colorspace_1.3-2</span>
+<span class="co">#&gt;  [5] R6_2.2.2         rlang_0.1.6      highr_0.6        stringr_1.2.0   </span>
+<span class="co">#&gt;  [9] plyr_1.8.4       tools_3.4.1      grid_3.4.1       gtable_0.2.0    </span>
+<span class="co">#&gt; [13] htmltools_0.3.6  assertthat_0.2.0 yaml_2.1.16      lazyeval_0.2.1  </span>
+<span class="co">#&gt; [17] rprojroot_1.3-1  digest_0.6.13    tibble_1.4.1     curl_3.1        </span>
+<span class="co">#&gt; [21] glue_1.2.0       evaluate_0.10.1  rmarkdown_1.8    labeling_0.3    </span>
+<span class="co">#&gt; [25] stringi_1.1.6    compiler_3.4.1   pillar_1.0.1     scales_0.5.0    </span>
+<span class="co">#&gt; [29] backports_1.1.2  jsonlite_1.5     pkgconfig_2.0.1</span></code></pre></div>
+</div>
+
+<script type="text/javascript">
+window.onload = function() {
+  var i, fig = 1, caps = document.getElementsByClassName('caption');
+  for (i = 0; i < caps.length; i++) {
+    var cap = caps[i];
+    if (cap.parentElement.className !== 'figure' || cap.nodeName !== 'P')
+      continue;
+    cap.innerHTML = '<span>Figure ' + fig + ':</span> ' + cap.innerHTML;
+    fig++;
+  }
+  fig = 1;
+  caps = document.getElementsByTagName('caption');
+  for (i = 0; i < caps.length; i++) {
+    var cap = caps[i];
+    if (cap.parentElement.nodeName !== 'TABLE') continue;
+    cap.innerHTML = '<span>Table ' + fig + ':</span> ' + cap.innerHTML;
+    fig++;
+  }
+}
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

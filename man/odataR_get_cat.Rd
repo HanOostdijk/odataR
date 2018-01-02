@@ -29,8 +29,6 @@ This function can be used to get information from an OData catalog.
 
 See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
 
-Queries should be specified without the preceeding '?'
-
 \code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
 }
 
@@ -41,11 +39,11 @@ df = odataR_get_cat(type=NULL)
 # all Tables in catalog:
 df = odataR_get_cat()
 # all tables that have a Title starting with 'Vacature':
-df = odataR_get_cat(query="$filter=startswith(Title,'Vacature')")
+df = odataR_get_cat(query="?$filter=startswith(Title,'Vacature')")
 # all tables that have a Title containing 'vacature' regardless of case:
-df = odataR_get_cat(query="$filter=substringof('vacature',tolower(Title))")
+df = odataR_get_cat(query="?$filter=substringof('vacature',tolower(Title))")
 # all active tables that have a Title containing 'vacature' regardless of case:
-df = odataR_get_cat(query="$filter=substringof('vacature',tolower(Title)) and Frequency ne 'Stopgezet' ")
+df = odataR_get_cat(query="?$filter=substringof('vacature',tolower(Title)) and Frequency ne 'Stopgezet' ")
 # all Featured entries in catalog:
 df = odataR_get_cat(type='Featured')
 # all Featured tables (?) in catalog:

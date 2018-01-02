@@ -7,25 +7,35 @@ The most important function is **odataR_get_table** that downloads for a given t
   
 ## Examples ordered by increasing complexity:
 
-1 `df = odataR_get_table(table_id="82935NED")`  
-Convert table `82935NED` to a data.frame with the (two) dimensions (`RegioS` and `Perioden`) decoded  
+1 `df = odataR_get_cat()`  
+Retrieve the contents of the catalog  
+
+2 `df = odataR_get_table(table_id="82935NED")`  
+Convert table `82935NED` to a data.frame with all (two) dimensions decoded 
+
+3 `df = odataR_get_meta(table_id="82935NED",metatype="DataProperties")`  
+View the information about the fields in this table:  the two dimensions are `RegioS` and `Perioden`  
   
-2 `df = odataR_get_table(table_id="82935NED",keepcode = c("RegioS","Perioden"))`  
-Same as example1 but the coded version of both `RegioS` and `Perioden` are included  
+4 `df = odataR_get_table(table_id="82935NED",keepcode = c("RegioS","Perioden"))`  
+Same as example2 but the coded version of both `RegioS` and `Perioden` are included  
   
-3 `df = odataR_get_table(table_id="82935NED",keepcode = c("RegioS","Perioden"))`  
-    `query  = "$filter=startswith(RegioS,'NL01')" )`  
-Same as example2 but the OData server will only return rows where the value of RegioS starts with `NL01`  
+5 `df = odataR_get_table(table_id="82935NED",keepcode = c("RegioS","Perioden"),`  
+    `query  = "?$filter=startswith(RegioS,'NL01')" )`  
+Same as example4 but the OData server will only return rows where the value of RegioS starts with `NL01`  
   
-4 `df      = odataR_get_table(table_id="82935NED",`  
-    `query  = paste0("$filter=startswith(RegioS,'NL01')",`  
+6 `df      = odataR_get_table(table_id="82935NED",`  
+    `query  = paste0("?$filter=startswith(RegioS,'NL01')",`  
                    `"&$select=RegioS,Perioden,TotaleInvesteringen_1",`   
                    `"&$skip=2&$top=3") )`  
-Same as example5 but the OData server will only return the third, fourth and fifth row and the indicated fields (columns) 
+Same as example5 but the OData server will only return the third, fourth and fifth row and the indicated fields (columns)
+
+7 `df = odataR_get_cat(query = paste0("?$filter=substringof('bevolking',tolower(ShortDescription))",`
+  `"&$select=Identifier,ShortTitle,ShortDescription,RecordCount,ColumnCount"))` 
+Find in the catalog the tables with `bevolking` (population) in the `ShortDescription` field and restrict the returned fields to the ones specified with `select`.
 
 ### Description of the query language
-The `$filter`, `$select`, `$skip` and `$top` commands used in the examples 3 and further are elements of the query language for OData described in the [OData protocol v4](http://docs.oasis-open.org/odata/odata/v4.0/errata02/os/complete/part1-protocol/odata-v4.0-errata02-os-part1-protocol-complete.html) for version 4 and the [OData protocol v3](
-http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/) for version 3. **The website of Statistics Netherlands is in progress of converting from version 3 to 4.**
+The `$filter`, `$select`, `$skip` and `$top` commands used in the examples 5 and further are elements of the query language for OData described in the [OData protocol v4](http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html) for version 4 and the 
+[OData protocol v3](http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/) for version 3. **The website of Statistics Netherlands is in progress of converting from version 3 to 4.**
 
 **NB** the queries specified in odataR should **not** include the `?` that is generated in the OData url.
 
@@ -40,7 +50,7 @@ The folder *private* contains two PDFs with extra information:
 
 install.packages("devtools")  
 library(devtools)  
-install_github("HanOostdijk/odataR")
+install_github("HanOostdijk/odataR",build_vignettes = T)
 
 ## References
 - A introduction to OData :

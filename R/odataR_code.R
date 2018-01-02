@@ -61,8 +61,6 @@ odataR_query <- function (odata_url) {
 #' @section Remarks:
 #' See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
 #'
-#' Queries should be specified without the preceeding '?'
-#'
 #'\code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
 #' @examples
 #' \dontrun{
@@ -70,7 +68,7 @@ odataR_query <- function (odata_url) {
 #' df      = odataR_get_table(table_id="82935NED",keepcode = "RegioS")
 #' df      = odataR_get_table(table_id="82935NED",keepcode = c("RegioS","Perioden"))
 #' df      = odataR_get_table(table_id="82935NED",
-#'   query  = paste0("$filter=startswith(RegioS,'NL01')",
+#'   query  = paste0("?$filter=startswith(RegioS,'NL01')",
 #'                   "&$select=RegioS,Perioden,TotaleInvesteringen_1",
 #'                   "&$skip=2&$top=3") )
 #' }
@@ -82,7 +80,7 @@ odataR_get_table <- function(
 		typed    = T,
 		keepcode = c() ) {
 	tds      = ifelse(typed == F, 'UntypedDataSet', 'TypedDataSet')
-	query    = URLencode(ifelse(is.null(query), '', paste0('?', query)))
+	query    = URLencode(ifelse(is.null(query), '', query))
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
 	subtabt  = odataR_query(paste0(bname, '?$format=json'))
 	if (!('url' %in% names(subtabt))) return(dplyr::data_frame())
@@ -123,9 +121,6 @@ couple_data <- function(
 
 couple_data_dim <- function(tt, dsn, keep_code=F) {
 	dim  = names(dsn)
-	# tab1 = odataR_query(dsn) %>%
-	# 	dplyr::select(Key, Title) %>%
-	# 	odataR_rename('Title', paste0(dim, '_decode'))
 	tab1 = odataR_query(dsn)
 	tab1 = dplyr::select(tab1,'Key', 'Title')
 	tab1 = odataR_rename(tab1,'Title', paste0(dim, '_decode'))
@@ -142,7 +137,6 @@ couple_data_dim <- function(tt, dsn, keep_code=F) {
 odataR_rename <- function (df,oldname,newname) {
 	quo_oldname = dplyr::quo_name(oldname)
 	quo_newname = dplyr::quo_name(newname)
-	# tfun        =  .Primitive("~")
 	dplyr::rename(df,!!quo_newname := !!quo_oldname)
 }
 
@@ -169,8 +163,6 @@ odataR_drop <- function (df,oldname) {
 #' @section Remarks:
 #' See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
 #'
-#' Queries should be specified without the preceeding '?'
-#'
 #'\code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
 #'
 #' @examples
@@ -180,11 +172,11 @@ odataR_drop <- function (df,oldname) {
 #' # all Tables in catalog:
 #' df = odataR_get_cat()
 #' # all tables that have a Title starting with 'Vacature':
-#' df = odataR_get_cat(query="$filter=startswith(Title,'Vacature')")
+#' df = odataR_get_cat(query="?$filter=startswith(Title,'Vacature')")
 #' # all tables that have a Title containing 'vacature' regardless of case:
-#' df = odataR_get_cat(query="$filter=substringof('vacature',tolower(Title))")
+#' df = odataR_get_cat(query="?$filter=substringof('vacature',tolower(Title))")
 #' # all active tables that have a Title containing 'vacature' regardless of case:
-#' df = odataR_get_cat(query="$filter=substringof('vacature',tolower(Title)) and Frequency ne 'Stopgezet' ")
+#' df = odataR_get_cat(query="?$filter=substringof('vacature',tolower(Title)) and Frequency ne 'Stopgezet' ")
 #' # all Featured entries in catalog:
 #' df = odataR_get_cat(type='Featured')
 #' # all Featured tables (?) in catalog:
@@ -196,7 +188,7 @@ odataR_drop <- function (df,oldname) {
 #' }
 
 odataR_get_cat <- function(type='Tables',query=NULL) {
-	query    = URLencode(ifelse(is.null(query),'',paste0('?',query)))
+	query    = URLencode(ifelse(is.null(query),'',query))
 	odataR_query(paste0(odataR_get_root_catalog(type),query))
 }
 
@@ -211,17 +203,13 @@ odataR_get_cat <- function(type='Tables',query=NULL) {
 #'  \item \code{'TableInfos'} : a \code{tibble} with one row is retrieved with (background) information about the table \cr
 #'  \item \code{'CategoryGroups'} : a \code{tibble} with one row is retrieved with information about the category tables for this table \cr
 #'  \item \code{'DataProperties'} : a \code{tibble} is retrieved with information about the columns of the table \cr
-#'  \item a dimension name : a \code{tibble} is retrieved with the code information of the dimension. \cr
+#'  \item a dimension name : a \code{tibble} is retrieved with the code information of the dimension (e.g.  \code{Gemeenten} in the examples below. \cr
 #' }
 #' @param query OData query to restrict data returned from the meta table
 #' @return A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
 #' @export
 #' @section Remarks:
 #' See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
-#'
-#' Queries should be specified without the preceeding '?'
-#' 
-#' No query is allowed on the DataProperties sub table
 #'
 #'\code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
 #'
@@ -234,6 +222,8 @@ odataR_get_cat <- function(type='Tables',query=NULL) {
 #' df = odataR_get_meta(table_id='45042NED',metatype='DataProperties')
 #' df = odataR_get_meta(table_id='45042NED',metatype='Gemeenten')
 #' df = odataR_get_meta(table_id='45042NED',metatype='Verslagsoort')
+#' df = odataR_get_meta(table_id='45042NED',metatype='Gemeenten',
+#'        query="?$filter=substringof('amstelveen',tolower(Title))")
 #' }
 
 odataR_get_meta <- function(
@@ -243,7 +233,7 @@ odataR_get_meta <- function(
 		query    = NULL
 	) {
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
-	query    = URLencode(ifelse(is.null(query),'',paste0('?',query)))
+	query    = URLencode(ifelse(is.null(query),'',query))
 	subtabt  = odataR_query(paste0(bname, '?$format=json'))
 	if (!('url' %in% names(subtabt))) return(dplyr::data_frame())
 	if (is.null(metatype) | length(metatype) == 0)   return(subtabt)
@@ -258,9 +248,15 @@ odataR_get_meta <- function(
 		url1     = paste0(subtabs['CategoryGroups'],query)
 		return(odataR_query(url1))
 	}
-	url1     = subtabs['DataProperties']
-	props    = odataR_query(url1)
-	if (metatype == 'DataProperties') return(props)
+	if (metatype == 'DataProperties') {
+		url1     = paste0(subtabs['DataProperties'],query)
+		props    = odataR_query(url1)
+		return(props)
+	}
+	else {
+		url1     = subtabs['DataProperties']
+		props    = odataR_query(url1)
+	}
 	url1     = paste0(subtabs['TypedDataSet'], URLencode('?$top=1'))
 	df       = odataR_query(url1)
 	tv       = dplyr::filter(props, Key %in% names(df))
@@ -272,26 +268,4 @@ odataR_get_meta <- function(
 		return(odataR_query(url1))
 	}
 	else return(dplyr::data_frame())
-}
-
-
-skip_for_build2 <- function () {
-
-tttt = odataR_get_table(table_id = '81071NED',
-	query  = "$filter=startswith(GeneesmiddelengroepATC,'ATC100')",
-	keepcode = c('Leeftijd','Geslacht'),
-	meta = T,
-	metatype='Leeftijd')
-tttt = odataR_get_table(table_id = '81071NED',
-	query  = "$filter=startswith(GeneesmiddelengroepATC,'ATC100')",
-	keepcode = c('Leeftijd','Geslacht'),
-	meta = T,
-	metatype='DataProperties')
-#
-
-#
-# odataR_set_root('http://dataderden.cbs.nl')
-# (x=odataR_set_root())
-#
-# # tttt = odataR_get_table(table_id = '45042NED',query="$top=100",keepcode=c('Gemeenten'))
 }

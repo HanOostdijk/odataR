@@ -28,8 +28,6 @@ This is the main function of this package. It retrieves a data table from the da
 
 See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
 
-Queries should be specified without the preceeding '?'
-
 \code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
 }
 
@@ -39,7 +37,7 @@ df      = odataR_get_table(table_id="82935NED")
 df      = odataR_get_table(table_id="82935NED",keepcode = "RegioS")
 df      = odataR_get_table(table_id="82935NED",keepcode = c("RegioS","Perioden"))
 df      = odataR_get_table(table_id="82935NED",
-  query  = paste0("$filter=startswith(RegioS,'NL01')",
+  query  = paste0("?$filter=startswith(RegioS,'NL01')",
                   "&$select=RegioS,Perioden,TotaleInvesteringen_1",
                   "&$skip=2&$top=3") )
 }
