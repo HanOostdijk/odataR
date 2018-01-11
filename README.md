@@ -46,6 +46,8 @@ The folder *development_scripts* contains three PDFs with extra information:
 
 Apart from these PDFs the folder also contains some devtools statements that were used to build the package.
 
+NB this package (based on JSON) replaces [odataR_old](https://github.com/HanOostdijk/odataR_old.git) that was based on XML.
+
 ## Install odataR
 
 install.packages("devtools")  
