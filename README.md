@@ -52,7 +52,8 @@ NB this package (based on JSON) replaces [odataR_old](https://github.com/HanOost
 
 install.packages("devtools")  
 library(devtools)  
-install_github("HanOostdijk/odataR",build_vignettes = T)
+install_github("HanOostdijk/odataR",build_vignettes = T) # if ggplot2 already installed or ...
+install_github("HanOostdijk/odataR",build_vignettes = F) # if ggplot2 is not installed
 
 ## References
 - A introduction to OData :
