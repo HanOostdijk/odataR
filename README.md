@@ -35,7 +35,8 @@ Find in the catalog the tables with `bevolking` (population) in the `ShortDescri
 
 ### Description of the query language
 The `$filter`, `$select`, `$skip` and `$top` commands used in the examples 5 and further are elements of the query language for OData described in the [OData protocol v4](http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html) for version 4 and the 
-[OData protocol v3](http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/) for version 3. **The website of Statistics Netherlands is in progress of converting from version 3 to 4.**
+[OData protocol v3](http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/) for version 3.  
+**The website of Statistics Netherlands is in progress of converting from version 3 to 4. Apart from the change in OData version the structure of the data is slightly changed.** See [New version CBS open data API (CCB)](https://acc-ccb.cbs.nl/OData4/releasenotes.html) for details about the status of the conversion and function `get_table_cbs_odata4` from package [HOQCutil](https://github.com/HanOostdijk/HOQCutil) to read version 4 data.
 
 ## Additional information about odataR
 The folder *development_scripts* contains three PDFs with extra information:  
