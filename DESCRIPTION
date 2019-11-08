@@ -1,7 +1,7 @@
 Package: odataR
 Type: Package
 Title: Read access to OData information
-Version: 0.1.0
+Version: 0.1.1
 Author: Han Oostdijk
 Maintainer: Han Oostdijk <han.oostdijk@xs4all.nl>
 Description: (Read) access to OData information
@@ -14,7 +14,7 @@ Imports:
     jsonlite,
     dplyr,
     rlang
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

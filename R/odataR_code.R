@@ -62,7 +62,7 @@ odataR_query <- function (odata_url) {
 #' @section Remarks:
 #' See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
 #'
-#'\code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
+#' \code{$format=json} is forced by the code so do not specify \code{$format=atom} because this will not work
 #' @examples
 #' \dontrun{
 #' df      = odataR_get_table(table_id="82935NED")
@@ -79,9 +79,11 @@ odataR_get_table <- function(
 		table_id = NULL,
 		query    = NULL,
 		typed    = T,
-		keepcode = c() ) {
+		keepcode = c()
+		) {
 	tds      = ifelse(typed == F, 'UntypedDataSet', 'TypedDataSet')
-	query    = URLencode(ifelse(is.null(query), '', query))
+	query    = ifelse(is.null(query), '', query)
+	query    = force_json(query)
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
 	subtabt  = odataR_query(paste0(bname, '?$format=json'))
 	if (!('url' %in% names(subtabt))) return(dplyr::data_frame())
@@ -99,6 +101,21 @@ odataR_get_table <- function(
 		dplyr::filter(tv, Type == 'Topic'),
 		'Key')
 	couple_data(df, dv, tv, subtabs, keepcode)
+}
+
+force_json <- function (query) {
+# force this as json query 
+	# remove the '?'
+	query = gsub('?','',query,fixed=T)
+	# remove '$format=json' however it occurs
+	query = gsub('^\\$format=json$','',query,perl = T)
+	query = gsub('^\\$format=json&','',query,perl = T)
+	query = gsub('&\\$format=json$','',query,perl = T)
+	query = gsub('&\\$format=json&','&',query,perl = T)
+	# force '$format=json' at start of query
+	query = paste0('?$format=json',ifelse(nchar(query)>0,'&',''),query)
+	# encode the query
+	URLencode(query)
 }
 
 couple_data <- function(
