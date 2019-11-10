@@ -5,7 +5,7 @@
 \title{Get meta data about table}
 \usage{
 odataR_get_meta(root = odataR_get_root_data(), table_id = NULL,
-  metatype = NULL, query = NULL)
+  metatype = NULL, query = NULL, debug = FALSE)
 }
 \arguments{
 \item{root}{Root of data structure}
@@ -18,10 +18,12 @@ odataR_get_meta(root = odataR_get_root_data(), table_id = NULL,
  \item \code{'TableInfos'} : a \code{tibble} with one row is retrieved with (background) information about the table \cr
  \item \code{'CategoryGroups'} : a \code{tibble} with one row is retrieved with information about the category tables for this table \cr
  \item \code{'DataProperties'} : a \code{tibble} is retrieved with information about the columns of the table \cr
- \item a dimension name : a \code{tibble} is retrieved with the code information of the dimension (e.g.  \code{Gemeenten} in the examples below. \cr
+ \item a dimension name : a \code{tibble} is retrieved with the code information of the dimension (e.g.  \code{Gemeenten} in the examples below). \cr
 }}
 
-\item{query}{OData query to restrict data returned from the meta table}
+\item{query}{OData query to restrict data returned from the meta table (do not use in combination with \code{metatype=NULL})}
+
+\item{debug}{Boolean indicating if (for debugging) the generated OData queries are to be printed (default FALSE)}
 }
 \value{
 A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
@@ -38,7 +40,9 @@ See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0
 
 \examples{
 \dontrun{
-odataR_set_root('http://dataderden.cbs.nl') ;
+odataR_set_root('http://dataderden.cbs.nl') 
+# NB statement in previous line is necessary
+#  otherwise the examples below will not work!
 df = odataR_get_meta(table_id='45042NED')
 df = odataR_get_meta(table_id='45042NED',metatype='TableInfos')
 df = odataR_get_meta(table_id='45042NED',metatype='CategoryGroups')
@@ -46,6 +50,7 @@ df = odataR_get_meta(table_id='45042NED',metatype='DataProperties')
 df = odataR_get_meta(table_id='45042NED',metatype='Gemeenten')
 df = odataR_get_meta(table_id='45042NED',metatype='Verslagsoort')
 df = odataR_get_meta(table_id='45042NED',metatype='Gemeenten',
-       query="?$filter=substringof('amstelveen',tolower(Title))")
+       query="?$filter=substringof('amstelveen',tolower(Title))",
+       debug=T)
 }
 }

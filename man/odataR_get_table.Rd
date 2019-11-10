@@ -5,7 +5,7 @@
 \title{Get table data}
 \usage{
 odataR_get_table(root = odataR_get_root_data(), table_id = NULL,
-  query = NULL, typed = T, keepcode = c())
+  query = NULL, typed = T, decode = T, keepcode = c(), debug = F)
 }
 \arguments{
 \item{root}{Root of data structure}
@@ -14,15 +14,19 @@ odataR_get_table(root = odataR_get_root_data(), table_id = NULL,
 
 \item{query}{OData query to restrict data returned from structure}
 
-\item{typed}{Boolean indicating 'TypedDataSet' when T or 'UntypedDataSet' when F'}
+\item{typed}{Boolean indicating 'TypedDataSet' when T or 'UntypedDataSet' when F}
+
+\item{decode}{Boolean indicating if fields are to be decoded (default T)}
 
 \item{keepcode}{Character string with dimension(s) for which the coded values are kept}
+
+\item{debug}{Boolean indicating if (for debugging) the generated OData queries are to be printed (default FALSE)}
 }
 \value{
 A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
 }
 \description{
-This is the main function of this package. It retrieves a data table from the data base and all dimensions are decoded. An (optional) query is executed in the database
+This is the main function of this package. It retrieves a data table from the data base and all dimensions are decoded (if requested). An (optional) query is executed in the database
 }
 \section{Remarks}{
 
@@ -39,6 +43,7 @@ df      = odataR_get_table(table_id="82935NED",keepcode = c("RegioS","Perioden")
 df      = odataR_get_table(table_id="82935NED",
   query  = paste0("?$filter=startswith(RegioS,'NL01')",
                   "&$select=RegioS,Perioden,TotaleInvesteringen_1",
-                  "&$skip=2&$top=3") )
+                  "&$skip=2&$top=3"),
+  debug=T)
 }
 }

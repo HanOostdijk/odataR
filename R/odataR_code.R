@@ -25,8 +25,21 @@
 #' @name odataR
 NULL
 
+#' Retrieve OData (sub) table
+#'
+#' This is a low level function used to retrieve OData data. The high level functions (as e.g.  \code{\link{odataR_get_table}}) convert the user specification to one or more calls to \code{\link{odataR_query}} with the appropriate \code{url} and \code{query}. Normally not used by the occasional user. 
+#' @param odata_url Character string with the requested url
+#' @param odata_query Character string with the query to attach to the url
+#' @param debug Boolean indicating if the \code{odata_url} and \code{odata_query} argument will be printed (default FALSE)
+#' @name odataR_query
 #' @export
-odataR_query <- function (odata_url) {
+
+odataR_query <- function (odata_url,odata_query=NULL,debug=F) {
+	if (debug) {
+		cat(paste0('debug odataR_query url  : ',odata_url,'\n'))
+		cat(paste0('debug odataR_query query: ',odata_query,'\n'))
+	}
+	odata_url = paste0(odata_url,adjust_query(odata_query))
 	hoqc_chr <- 'Error in fromJSON probably invalid url'
 	tryCatch(hoqc_chr  <- jsonlite::fromJSON(odata_url), error = function(e) e, finally = {})
 	if (length(hoqc_chr) ==1 && hoqc_chr == 'Error in fromJSON probably invalid url')
@@ -51,13 +64,15 @@ odataR_query <- function (odata_url) {
 
 #' Get table data
 #'
-#' This is the main function of this package. It retrieves a data table from the data base and all dimensions are decoded. An (optional) query is executed in the database
+#' This is the main function of this package. It retrieves a data table from the data base and all dimensions are decoded (if requested). An (optional) query is executed in the database
 #' @param root Root of data structure
 #' @param table_id Identification of table
 #' @param query OData query to restrict data returned from structure
-#' @param typed Boolean indicating 'TypedDataSet' when T or 'UntypedDataSet' when F'
+#' @param typed Boolean indicating 'TypedDataSet' when T or 'UntypedDataSet' when F 
+#' @param decode Boolean indicating if fields are to be decoded (default T)
 #' @param keepcode Character string with dimension(s) for which the coded values are kept
 #' @return A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
+#' @param debug Boolean indicating if (for debugging) the generated OData queries are to be printed (default FALSE)
 #' @export
 #' @section Remarks:
 #' See  \url{http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/} or \url{http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html} (depending on the version of the OData protocol that is used) for details about the query possibilities.
@@ -71,7 +86,8 @@ odataR_query <- function (odata_url) {
 #' df      = odataR_get_table(table_id="82935NED",
 #'   query  = paste0("?$filter=startswith(RegioS,'NL01')",
 #'                   "&$select=RegioS,Perioden,TotaleInvesteringen_1",
-#'                   "&$skip=2&$top=3") )
+#'                   "&$skip=2&$top=3"),
+#'   debug=T)
 #' }
 
 odataR_get_table <- function(
@@ -79,51 +95,62 @@ odataR_get_table <- function(
 		table_id = NULL,
 		query    = NULL,
 		typed    = T,
-		keepcode = c()
+		decode   = T,
+		keepcode = c(),
+		debug    = F
 		) {
 	tds      = ifelse(typed == F, 'UntypedDataSet', 'TypedDataSet')
-	query    = ifelse(is.null(query), '', query)
-	query    = force_json(query)
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
-	subtabt  = odataR_query(paste0(bname, '?$format=json'))
+	subtabt  = odataR_query(bname,debug=debug)
 	if (!('url' %in% names(subtabt))) return(dplyr::data_frame())
 	subtabs  = subtabt$url
 	names(subtabs) = subtabt$name
-	url1     = subtabs['DataProperties']
-	props    = odataR_query(url1)
-	url1     = paste0(subtabs[tds], query)
-	df       = odataR_query(url1)
-	tv       = dplyr::filter(props, Key %in% names(df))
-	dv       = dplyr::select(
-		dplyr::filter(tv,Type %in% c('Dimension', 'TimeDimension', 'GeoDimension')),
-		'Key')
-	tv       = dplyr::select(
-		dplyr::filter(tv, Type == 'Topic'),
-		'Key')
-	couple_data(df, dv, tv, subtabs, keepcode)
+	props    = odataR_query(subtabs['DataProperties'],debug=debug)
+	df       = odataR_query(subtabs[tds], query,debug=debug)
+	if (decode == F) return(df)
+	dv       = dplyr::filter(props, Type %in% c('Dimension', 'TimeDimension', 'GeoDimension'))
+	couple_data(df, dv, subtabs, keepcode,debug)
 }
 
-force_json <- function (query) {
-# force this as json query 
+adjust_query <- function (query) {
+	# force this as json query and adapt for $count
+	query    = ifelse(is.null(query), '', query)
 	# remove the '?'
 	query = gsub('?','',query,fixed=T)
 	# remove '$format=json' however it occurs
-	query = gsub('^\\$format=json$','',query,perl = T)
-	query = gsub('^\\$format=json&','',query,perl = T)
-	query = gsub('&\\$format=json$','',query,perl = T)
-	query = gsub('&\\$format=json&','&',query,perl = T)
-	# force '$format=json' at start of query
+	query = remove_clause(query,'\\$format=json')
+	# insert '?$format=json' at start of query
 	query = paste0('?$format=json',ifelse(nchar(query)>0,'&',''),query)
+	# adapt for $count clause
+	if (grepl("\\$count",query,ignore.case=T)) {
+		# remove it everwhere
+		query = remove_clause(query,'\\$count')
+		# insert /$count in front of query
+		query = paste0('/$count',query)
+	}
 	# encode the query
 	URLencode(query)
 }
 
+remove_clause <- function (query,clause) {
+	# remove clause however it occurs in query
+	c1 = glue::glue('^{clause}$')
+	query = gsub(c1,'',query,perl = T,ignore.case=T)
+	c1 = glue::glue('^{clause}&')
+	query = gsub(c1,'',query,perl = T,ignore.case=T)
+	c1 = glue::glue('&{clause}$')
+	query = gsub(c1,'',query,perl = T,ignore.case=T)
+	c1 = glue::glue('&{clause}&')
+	query = gsub(c1,'&',query,perl = T,ignore.case=T)
+	query
+}
+
 couple_data <- function(
-	df,        # data.frame with coded dimensions (e.g. read by odataR_get_subtable)
-	dv,        # character vector with the names of the dimensions
-	tv,        # character vector with the names of the topics
+	df,         # data.frame with coded dimensions (e.g. read by odataR_get_subtable)
+	dv,         # character column (Key) with the names of the dimensions
 	table_list, # named vector with urls of sub tables
-	keepcode   # dimension(s) for which coded value is kept
+	keepcode,   # dimension(s) for which coded value is kept
+	debug       # debugging ?
 ) {
 	tt = df
 	for (dim in dv$Key)  {
@@ -132,14 +159,15 @@ couple_data <- function(
 		} else {
 			kc = F
 		}
-		tt = couple_data_dim(tt, table_list[dim],keep_code=kc) # link dimension data
+		tt = couple_data_dim(tt, table_list[dim], # link dimension data
+					 keep_code=kc,debug=debug) 
 	}
 	return(tt)
 }
 
-couple_data_dim <- function(tt, dsn, keep_code=F) {
+couple_data_dim <- function(tt, dsn, keep_code=F,debug=F) {
 	dim  = names(dsn)
-	tab1 = odataR_query(dsn)
+	tab1 = odataR_query(dsn,debug=debug)
 	tab1 = dplyr::select(tab1,'Key', 'Title')
 	tab1 = odataR_rename(tab1,'Title', paste0(dim, '_decode'))
 	by1  = c('Key') ; names(by1) = dim
@@ -176,6 +204,7 @@ odataR_drop <- function (df,oldname) {
 #'  \item \code{'Tables_Themes'} : a \code{tibble} with the Tables_Themes in this catalog \cr
 #' }
 #' @param query OData query to restrict data returned from the catalog
+#' @param debug Boolean indicating if (for debugging) the generated OData queries are to be printed (default FALSE)
 #' @return A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
 #' @export
 #' @section Remarks:
@@ -205,9 +234,8 @@ odataR_drop <- function (df,oldname) {
 #' df = odataR_get_cat(type='Tables_Themes')
 #' }
 
-odataR_get_cat <- function(type='Tables',query=NULL) {
-	query    = URLencode(ifelse(is.null(query),'',query))
-	odataR_query(paste0(odataR_get_root_catalog(type),query))
+odataR_get_cat <- function(type='Tables',query=NULL,debug=F) {
+	odataR_query(odataR_get_root_catalog(type),query,debug=debug)
 }
 
 #' Get meta data about table
@@ -221,9 +249,10 @@ odataR_get_cat <- function(type='Tables',query=NULL) {
 #'  \item \code{'TableInfos'} : a \code{tibble} with one row is retrieved with (background) information about the table \cr
 #'  \item \code{'CategoryGroups'} : a \code{tibble} with one row is retrieved with information about the category tables for this table \cr
 #'  \item \code{'DataProperties'} : a \code{tibble} is retrieved with information about the columns of the table \cr
-#'  \item a dimension name : a \code{tibble} is retrieved with the code information of the dimension (e.g.  \code{Gemeenten} in the examples below. \cr
+#'  \item a dimension name : a \code{tibble} is retrieved with the code information of the dimension (e.g.  \code{Gemeenten} in the examples below). \cr
 #' }
-#' @param query OData query to restrict data returned from the meta table
+#' @param query OData query to restrict data returned from the meta table (do not use in combination with \code{metatype=NULL})
+#' @param debug Boolean indicating if (for debugging) the generated OData queries are to be printed (default FALSE)
 #' @return A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
 #' @export
 #' @section Remarks:
@@ -233,7 +262,9 @@ odataR_get_cat <- function(type='Tables',query=NULL) {
 #'
 #' @examples
 #' \dontrun{
-#' odataR_set_root('http://dataderden.cbs.nl') ;
+#' odataR_set_root('http://dataderden.cbs.nl') 
+#' # NB statement in previous line is necessary
+#' #  otherwise the examples below will not work!
 #' df = odataR_get_meta(table_id='45042NED')
 #' df = odataR_get_meta(table_id='45042NED',metatype='TableInfos')
 #' df = odataR_get_meta(table_id='45042NED',metatype='CategoryGroups')
@@ -241,49 +272,39 @@ odataR_get_cat <- function(type='Tables',query=NULL) {
 #' df = odataR_get_meta(table_id='45042NED',metatype='Gemeenten')
 #' df = odataR_get_meta(table_id='45042NED',metatype='Verslagsoort')
 #' df = odataR_get_meta(table_id='45042NED',metatype='Gemeenten',
-#'        query="?$filter=substringof('amstelveen',tolower(Title))")
+#'        query="?$filter=substringof('amstelveen',tolower(Title))",
+#'        debug=T)
 #' }
 
 odataR_get_meta <- function(
 		root     = odataR_get_root_data(),
 		table_id = NULL,
 		metatype = NULL,
-		query    = NULL
+		query    = NULL,
+		debug    =FALSE
 	) {
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
-	query    = URLencode(ifelse(is.null(query),'',query))
-	subtabt  = odataR_query(paste0(bname, '?$format=json'))
+	subtabt  = odataR_query(bname,debug=debug)
 	if (!('url' %in% names(subtabt))) return(dplyr::data_frame())
 	if (is.null(metatype) | length(metatype) == 0)   return(subtabt)
 	subtabs  = subtabt$url
 	names(subtabs) = subtabt$name
 	if (metatype == 'TableInfos') {
-		url1     = paste0(subtabs['TableInfos'],query)
-		return(odataR_query(url1))
+		return(odataR_query(subtabs['TableInfos'],query,debug=debug))
 	}
 	if (metatype == 'CategoryGroups') {
 		if (!('CategoryGroups' %in% names(subtabs))) return(dplyr::data_frame())
-		url1     = paste0(subtabs['CategoryGroups'],query)
-		return(odataR_query(url1))
+		return(odataR_query(subtabs['CategoryGroups'],query,debug=debug))
 	}
 	if (metatype == 'DataProperties') {
-		url1     = paste0(subtabs['DataProperties'],query)
-		props    = odataR_query(url1)
-		return(props)
+		return(odataR_query(subtabs['DataProperties'],query,debug=debug))
 	}
 	else {
-		url1     = subtabs['DataProperties']
-		props    = odataR_query(url1)
+		props    = odataR_query(subtabs['DataProperties'],debug=debug)
 	}
-	url1     = paste0(subtabs['TypedDataSet'], URLencode('?$top=1'))
-	df       = odataR_query(url1)
-	tv       = dplyr::filter(props, Key %in% names(df))
-	dv       = dplyr::select(
-		dplyr::filter(tv,Type %in% c('Dimension', 'TimeDimension', 'GeoDimension')),
-		'Key')
+	dv       = dplyr::filter(props, Type %in% c('Dimension', 'TimeDimension', 'GeoDimension'))
 	if (metatype %in% dv$Key) {
-		url1     = paste0(subtabs[metatype],query)
-		return(odataR_query(url1))
+		return(odataR_query(subtabs[metatype],query,debug=debug))
 	}
 	else return(dplyr::data_frame())
 }

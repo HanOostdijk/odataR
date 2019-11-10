@@ -4,7 +4,7 @@
 \alias{odataR_get_cat}
 \title{Get catalog information}
 \usage{
-odataR_get_cat(type = "Tables", query = NULL)
+odataR_get_cat(type = "Tables", query = NULL, debug = F)
 }
 \arguments{
 \item{type}{Type of catalog information. This type can be one of:
@@ -18,6 +18,8 @@ odataR_get_cat(type = "Tables", query = NULL)
 }}
 
 \item{query}{OData query to restrict data returned from the catalog}
+
+\item{debug}{Boolean indicating if (for debugging) the generated OData queries are to be printed (default FALSE)}
 }
 \value{
 A \code{tibble} (\code{data_frame}) when successful otherwise an empty \code{tibble} or a message
