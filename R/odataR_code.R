@@ -35,11 +35,13 @@ NULL
 #' @export
 
 odataR_query <- function (odata_url,odata_query=NULL,debug=F) {
+	a_query = adjust_query(odata_query)
 	if (debug) {
-		cat(paste0('debug odataR_query url  : ',odata_url,'\n'))
-		cat(paste0('debug odataR_query query: ',odata_query,'\n'))
+		cat(paste0('debug odataR_query url   : ',odata_url,'\n'))
+		cat(paste0('debug odataR_query query : ',odata_query,'\n'))
+		cat(paste0('debug odataR_query aquery: ',a_query,'\n'))
 	}
-	odata_url = paste0(odata_url,adjust_query(odata_query))
+	odata_url = paste0(odata_url,a_query)
 	hoqc_chr <- 'Error in fromJSON probably invalid url'
 	tryCatch(hoqc_chr  <- jsonlite::fromJSON(odata_url), error = function(e) e, finally = {})
 	if (length(hoqc_chr) ==1 && hoqc_chr == 'Error in fromJSON probably invalid url')
@@ -107,8 +109,9 @@ odataR_get_table <- function(
 	names(subtabs) = subtabt$name
 	props    = odataR_query(subtabs['DataProperties'],debug=debug)
 	df       = odataR_query(subtabs[tds], query,debug=debug)
-	if (decode == F) return(df)
+	if ((decode == F) || !('data.frame' %in% class(df))) return(df)
 	dv       = dplyr::filter(props, Type %in% c('Dimension', 'TimeDimension', 'GeoDimension'))
+	dv       = dplyr::filter(dv, Key %in% names(df))
 	couple_data(df, dv, subtabs, keepcode,debug)
 }
 
