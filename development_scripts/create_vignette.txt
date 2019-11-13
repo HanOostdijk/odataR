@@ -2,13 +2,23 @@
 # See http://kbroman.org/pkg_primer/pages/vignettes.html
 # See http://r-pkgs.had.co.nz/
 
-# creates the document in all versions: html and pdf
+
+# create as 'official' vignette ?? 
+# Initially this did not work the last time I used it after the render step 
+# After removing the html and pdf version build by previous step it did work
+
+devtools::build_vignettes()
+
+# creates the document in all versions: html and pdf AFTER previous step
 
 rmarkdown::render("vignettes/vignette_odataR.rmd", "all")
+ 
 
 # apparently problems pointing to both a html and pdf version
 # because I prefer the html version in the help-version I copied the pdf-version 
 # to folder D:\data\R\odataR\development_scripts
+
+# only loading in the following way shows the vignettes
 
 devtools::install('../odataR',build_vignettes=T)
 

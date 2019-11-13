@@ -7,7 +7,11 @@ output:
     fig_caption: yes
   pdf_document:
     highlight: null
+    template: D:/data/R/odataR/development_scripts/default-1.17.0.2-hoqc.tex
 urlcolor: blue
+header-includes : [
+    '\renewcommand*{\familydefault}{\sfdefault}'  
+    ]
 vignette: >
   %\VignetteIndexEntry{odataR for Statistics Netherlands data} 
   \usepackage[utf8]{inputenc} 
@@ -19,10 +23,14 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+w = getOption('width')
+if (knitr::is_latex_output()) {
+	w = w-7 # to fit with sfdefault family
+} 
 ```
 
 ### Introduction
-The package was made because I was interested in the information of Statistics Netherlands.  
+The package was made because I am interested in the information of Statistics Netherlands.  
 The easiest tool method to do an adhoc query is using the Statline interface in the [Dutch](http://statline.cbs.nl/Statweb/) or [English](http://statline.cbs.nl/Statweb/?LA=en) language. It offers the possibility to pivot the various dimensions of the information and download the result to a csv (comma separated values) file or an Excel spreadsheet. And then the csv or Excel file can be read into the R environment for further processing.  
 However especially the handling of the headers is laborious in this way because it is different for each table/layout combination.  
 
@@ -82,11 +90,17 @@ Apart from viewing the catalog we can also do a query on the catalog. In the nex
 ```{r}
 cbscat = odataR_get_cat()
 (dimcat = dim(cbscat))
-str(cbscat[1,],nchar.max=getOption('width')-8,width=getOption('width'))
+```
+```{r eval=F}
+str(cbscat[1,]
+```
+```{r echo=F}
+str(cbscat[1,],nchar.max=w-8,width=w)
 ```
 From this we see that the catalog has `r dimcat[1]` rows and `r dimcat[2]` columns and that the field *ShortDescription* is probably suited to do a query on bevolking (population), leeftijd (age) and regio (region): 
 ```{r results='asis'}
-x = odataR_get_cat(query = paste0("?$filter=substringof('leeftijd',tolower(ShortDescription))",
+x = odataR_get_cat(query = paste0(
+  "?$filter=substringof('leeftijd',tolower(ShortDescription))",
   "and substringof('regio',tolower(ShortDescription)) ", 
   "and substringof('bevolking',tolower(ShortDescription)) ",
   "and substringof('bevolking',tolower(ShortTitle))",
@@ -130,7 +144,7 @@ In *Table2* we see that there are five dimensions (in position 0 till 4) and 2 t
 Because the case study wants to use the number of persons in certain age groups in Amstelveen we first have to check the subtables for the dimensions to see how we can recognize these persons. Remember that one can easily code to retrieve the whole table with `df=odataR_get_table(table_id='03759ned')` but this would result in a *data.frame* of `r cat_03759ned$RecordCount` rows and  `r cat_03759ned$ColumnCount` columns. 
 
 ### Check the *Geslacht* dimension (gender)
-We will not distinguish by gender, so no need to check but for completeness sake ...
+We will not distinguish by gender but we need the code for all genders together i.e. `T001038`. 
 By executing `x = odataR_get_meta(table_id='03759ned',metatype = 'Geslacht')` we see the various genders . *Table3* shows these. 
 ```{r echo=F,results='asis'}
 x = odataR_get_meta(table_id='03759ned',metatype = 'Geslacht')
@@ -138,17 +152,17 @@ kable(x,caption='keys for the genders')
 ``` 
 
 ### Check the *Leeftijd* dimension (ages and agegroups)
-By executing `x = odataR_get_meta(table_id='03759ned',metatype = 'Leeftijd')` we see the age groups. *Table4* shows the first five of these. Note that key 10000 is the total for all the age groups.
+By executing `x = odataR_get_meta(table_id='03759ned',metatype = 'Leeftijd')` we see the age groups. *Table4* shows the first five of these. Note that key `10000` is the total for all the age groups.
 ```{r echo=F,results='asis'}
 x = odataR_get_meta(table_id='03759ned',metatype = 'Leeftijd',query="?$top=5")
-kable(x,caption='keys for ten-year age groups')
+kable(x,caption='keys for the age groups')
 ``` 
 
 ### Check the *BurgerlijkeStaat* dimension (marital status)
-We will not distinguish by marital status, so no need to check but again for completeness sake ...
+We will not distinguish by marital status but we need the code for the total together i.e. `T001019`. 
 By executing `x = odataR_get_meta(table_id='03759ned',metatype = 'BurgerlijkeStaat')` we see the various genders . *Table5* shows the first three fields (with Description field capped at 40 characters). 
 ```{r echo=F,results='asis'}
-x = odataR_get_meta(table_id='03759ned',metatype = 'BurgerlijkeStaat')  %>%
+odataR_get_meta(table_id='03759ned',metatype = 'BurgerlijkeStaat')  %>%
   dplyr::mutate(Description=gsub('\r\n',' ',Description)) %>%
   dplyr::mutate(Description=substr(Description,1,40)) %>%
   dplyr::select(Key,Title,Description) %>%
@@ -179,7 +193,9 @@ So we now have the information to do a precise query for the information we need
 Aveen= odataR_get_table(table_id='03759ned',
   query=paste0(
   	"?$filter=startswith(RegioS,'GM0362') ",
-    "and Leeftijd ne '10000'" ,
+    "and Leeftijd ne '10000' " ,
+  	"and Geslacht eq 'T001038' ",
+  	"and BurgerlijkeStaat eq 'T001019'",
    "&$select=Perioden,Leeftijd,GemiddeldeBevolking_2"
   ))
 ``` 
@@ -193,8 +209,9 @@ Per year we want to show the relative size of each age group. First we will tran
 av1 = Aveen %>% 
   select(period=Perioden,age=Leeftijd,persons=GemiddeldeBevolking_2) %>%
   filter(!is.na(persons)) %>%
-  mutate(age = stringr::str_extract(age,"\\d{1,3}")  ) %>%
-  mutate(ageg = case_when(
+  mutate(
+         age = as.numeric(stringr::str_extract(age,"\\d{1,3}")), 
+         ageg = case_when(
     age < 10  ~ "Younger than 10 year",
     age < 20  ~ "10 till 20 year",
     age < 30  ~ "20 till 30 year",

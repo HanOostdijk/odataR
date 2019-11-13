@@ -2,8 +2,12 @@ Package: odataR
 Type: Package
 Title: Read access to OData information
 Version: 0.1.2
-Author: Han Oostdijk
-Maintainer: Han Oostdijk <han.oostdijk@xs4all.nl>
+Authors@R: 
+    c(person(given = "Han",
+             family = "Oostdijk",
+             role = c("aut", "cre"),
+             email = "han.oostdijk@xs4all.nl",
+             comment = c(ORCID = "0000-0001-6710-4566")))
 Description: (Read) access to OData information
     Reading table and catalog information.
 License: MIT + file LICENSE
