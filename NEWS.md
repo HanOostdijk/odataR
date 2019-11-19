@@ -1,5 +1,12 @@
 # odataR
 
+## odataR 0.1.3
+
+* 16nov2019   
+   + improved error messages
+   + forced refresh of documentation (by update to roxygen2 7.0.0 version)
+   + added tests
+
 ## odataR 0.1.2
 
 * 08nov2019   

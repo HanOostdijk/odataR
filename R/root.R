@@ -12,16 +12,22 @@ odataR_root_default = 'https://opendata.cbs.nl'
 #' Determines from which structure data and catalog information  will be extracted. If this function is not called
 #' the default \code{https://opendata.cbs.nl} (the root for the CBS Statistics Netherlands structures) will be used
 #' @param root NULL for the default or the url of the root structure otherwise
+#' @param debug Boolean indicating if (for debugging) the generated OData queries are to be printed (default FALSE)
 #' @export
 #' @examples
 #' odataR_set_root()
 #' odataR_set_root('https://opendata.cbs.nl')
 #' @seealso \code{\link{odataR_get_root}}
 
-odataR_set_root <- function (root=NULL) {
+odataR_set_root <- function (root=NULL,debug=F) {
   if (is.null(root)) {
     root = odataR_root_default
   }
+  # check validity of root
+  url = paste0(root, '/ODataCatalog/Tables')
+  err_msg='invalid value for root'
+  dum= odataR_query(url,odata_query='$count',debug=debug,err_msg=err_msg)
+  # in case of error next statemens are not executed
   .odataR_options$root = root
   invisible(root)
 }

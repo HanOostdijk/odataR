@@ -4,10 +4,12 @@
 \alias{odataR_set_root}
 \title{Sets the root for OData data and catalog structure}
 \usage{
-odataR_set_root(root = NULL)
+odataR_set_root(root = NULL, debug = F)
 }
 \arguments{
 \item{root}{NULL for the default or the url of the root structure otherwise}
+
+\item{debug}{Boolean indicating if (for debugging) the generated OData queries are to be printed (default FALSE)}
 }
 \description{
 Determines from which structure data and catalog information  will be extracted. If this function is not called

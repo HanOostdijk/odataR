@@ -4,13 +4,20 @@
 \alias{odataR_get_table}
 \title{Get table data}
 \usage{
-odataR_get_table(root = odataR_get_root_data(), table_id = NULL,
-  query = NULL, typed = T, decode = T, keepcode = c(), debug = F)
+odataR_get_table(
+  root = NULL,
+  table_id = NULL,
+  query = NULL,
+  typed = T,
+  decode = T,
+  keepcode = c(),
+  debug = F
+)
 }
 \arguments{
-\item{root}{Root of data structure}
+\item{root}{Character string with root of structure. Default NULL i.e. determined by the last use of \code{odataR_set_root} and if never used \code{'https://opendata.cbs.nl'}}
 
-\item{table_id}{Identification of table}
+\item{table_id}{Character string with identification of table}
 
 \item{query}{OData query to restrict data returned from structure}
 

@@ -4,9 +4,11 @@
 \alias{odataR_get_cat}
 \title{Get catalog information}
 \usage{
-odataR_get_cat(type = "Tables", query = NULL, debug = F)
+odataR_get_cat(root = NULL, type = "Tables", query = NULL, debug = F)
 }
 \arguments{
+\item{root}{Character string with root of structure. Default NULL i.e. determined by the last use of \code{odataR_set_root} and if never used \code{'https://opendata.cbs.nl'}}
+
 \item{type}{Type of catalog information. This type can be one of:
 \itemize{
  \item \code{NULL} : a \code{tibble} with the various types in this catalog \cr

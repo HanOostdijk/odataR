@@ -31,44 +31,69 @@ NULL
 #' @param odata_url Character string with the requested url
 #' @param odata_query Character string with the query to attach to the url
 #' @param debug Boolean indicating if the \code{odata_url} and \code{odata_query} argument will be printed (default FALSE)
+#' @param err_msg Character string with message to display in case of error. Default \code{NULL}
 #' @name odataR_query
 #' @export
 
-odataR_query <- function (odata_url,odata_query=NULL,debug=F) {
-	a_query = adjust_query(odata_query)
+odataR_query <- function (odata_url,odata_query=NULL,debug=F,err_msg=NULL) {
+  # do a call to the OData API
+	my_stop <- function() {
+	  # local error catch function
+		e <- geterrmessage()
+		e <- strsplit(e,"\n")[[1]][-1]
+		cat(e)
+	}
+	# activate this error catch function
+	o1=options(error = my_stop,show.error.messages=FALSE)
+	# make sure standard error processing reset after leaving function
+	on.exit(expr=options(o1))
+	# adjust query and build full url
+	a_query   = adjust_query(odata_query)
+	odata_url1 = paste0(odata_url,a_query)
+	# print debugging statements
 	if (debug) {
 		cat(paste0('debug odataR_query url   : ',odata_url,'\n'))
 		cat(paste0('debug odataR_query query : ',odata_query,'\n'))
-		cat(paste0('debug odataR_query aquery: ',a_query,'\n'))
+		cat(paste0('debug odataR_query aquery: ',a_query,'\n\n'))
 	}
-	odata_url = paste0(odata_url,a_query)
-	hoqc_chr <- 'Error in fromJSON probably invalid url'
-	tryCatch(hoqc_chr  <- jsonlite::fromJSON(odata_url), error = function(e) e, finally = {})
-	if (length(hoqc_chr) ==1 && hoqc_chr == 'Error in fromJSON probably invalid url')
-		value = paste(hoqc_chr,': ',odata_url)
+	# prepare error message in case of problems
+	err_msg1  <- ifelse(is.null(err_msg), 'Error in url (probably invalid query)',err_msg)
+	hoqc_chr <- err_msg1
+	# do the (first of the ) actuals API call(s)
+	tryCatch(hoqc_chr  <- jsonlite::fromJSON(odata_url1), error = function(e) e, finally = {})
+	if (identical(hoqc_chr, err_msg1)){
+	  # if hoqc_chr not changed this is error: report it
+		value = ifelse(is.null(err_msg), paste(hoqc_chr,':',odata_url1),err_msg)
+		stop(value)
+		}
 	else if (is.numeric(hoqc_chr))
+	  # if numeric then return (e.g. in case of $count)
 		value = hoqc_chr
 	else if (is.null(hoqc_chr[['odata.error']])) {
+	  # when no OData error we get actual data in value
 		value = hoqc_chr[['value']]
+		value = as.data.frame(value)
+		# check if there is more data to collect 
 	  nextLink = hoqc_chr[['odata.nextLink']]
-	  if (!is.null(nextLink)) value = dplyr::as_data_frame(value)
 	  while (!is.null(nextLink)){
-	  	# tryCatch(hoqc_chr  <- fromJSON(nextLink), error = function(e) e, finally = {})
+	  	# retrieve more data, append to earlier data and check again for more data
 	  	hoqc_chr  <- jsonlite::fromJSON(nextLink)
-	  	value = rbind(value,dplyr::as_data_frame(hoqc_chr[['value']]))
+	  	value = rbind(value,as.data.frame(hoqc_chr[['value']]))
 	  	nextLink = hoqc_chr[['odata.nextLink']]
 	  }
 	}
-	else
+	else {
 	  value = hoqc_chr[['odata.error']][['msg']]
+	  stop(value)
+	  }
 	return(value)
 }
 
 #' Get table data
 #'
 #' This is the main function of this package. It retrieves a data table from the data base and all dimensions are decoded (if requested). An (optional) query is executed in the database
-#' @param root Root of data structure
-#' @param table_id Identification of table
+#' @param root Character string with root of structure. Default NULL i.e. determined by the last use of \code{odataR_set_root} and if never used \code{'https://opendata.cbs.nl'}
+#' @param table_id Character string with identification of table
 #' @param query OData query to restrict data returned from structure
 #' @param typed Boolean indicating 'TypedDataSet' when T or 'UntypedDataSet' when F 
 #' @param decode Boolean indicating if fields are to be decoded (default T)
@@ -93,7 +118,7 @@ odataR_query <- function (odata_url,odata_query=NULL,debug=F) {
 #' }
 
 odataR_get_table <- function(
-		root     = odataR_get_root_data(),
+		root     = NULL,
 		table_id = NULL,
 		query    = NULL,
 		typed    = T,
@@ -101,15 +126,20 @@ odataR_get_table <- function(
 		keepcode = c(),
 		debug    = F
 		) {
-	tds      = ifelse(typed == F, 'UntypedDataSet', 'TypedDataSet')
+  if (!is.null(root) ) odataR::odataR_set_root(root,debug=debug)
+  root     = odataR::odataR_get_root_data()
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
-	subtabt  = odataR_query(bname,debug=debug)
-	if (!('url' %in% names(subtabt))) return(dplyr::data_frame())
+	err_msg  = 'No data found for this "table_id" in this catalog'
+	subtabt  = odataR_query(bname,debug=debug,err_msg=err_msg)
+	if (!('url' %in% names(subtabt))) 
+	  stop('Internal error in package "odataR"')
 	subtabs  = subtabt$url
 	names(subtabs) = subtabt$name
-	props    = odataR_query(subtabs['DataProperties'],debug=debug)
-	df       = odataR_query(subtabs[tds], query,debug=debug)
+	tds      = ifelse(typed == F, 'UntypedDataSet', 'TypedDataSet')
+	df       = odataR_query(subtabs[tds], query,debug=debug,err_msg=NULL)
 	if ((decode == F) || !('data.frame' %in% class(df))) return(df)
+	err_msg  = paste0('Internal error in package "odataR" :',subtabs['DataProperties'])
+	props    = odataR_query(subtabs['DataProperties'],debug=debug,err_msg=err_msg)
 	dv       = dplyr::filter(props, Type %in% c('Dimension', 'TimeDimension', 'GeoDimension'))
 	dv       = dplyr::filter(dv, Key %in% names(df))
 	couple_data(df, dv, subtabs, keepcode,debug)
@@ -126,10 +156,13 @@ adjust_query <- function (query) {
 	query = paste0('?$format=json',ifelse(nchar(query)>0,'&',''),query)
 	# adapt for $count clause
 	if (grepl("\\$count",query,ignore.case=T)) {
-		# remove it everwhere
-		query = remove_clause(query,'\\$count')
-		# insert /$count in front of query
-		query = paste0('/$count',query)
+		# # remove it everwhere
+		# query = remove_clause(query,'\\$count')
+		# # insert /$count in front of query
+		# query = paste0('/$count',query)
+		# $count in combination with $query does not seem to work for CBS data
+		# $format=json in combination with catalog request does not seem to work for CBS data
+		query = '/$count'
 	}
 	# encode the query
 	URLencode(query)
@@ -170,7 +203,8 @@ couple_data <- function(
 
 couple_data_dim <- function(tt, dsn, keep_code=F,debug=F) {
 	dim  = names(dsn)
-	tab1 = odataR_query(dsn,debug=debug)
+	err_msg  = paste0('Internal error in package "odataR" :',dsn)
+	tab1 = odataR_query(dsn,debug=debug,err_msg=err_msg)
 	tab1 = dplyr::select(tab1,'Key', 'Title')
 	tab1 = odataR_rename(tab1,'Title', paste0(dim, '_decode'))
 	by1  = c('Key') ; names(by1) = dim
@@ -197,6 +231,7 @@ odataR_drop <- function (df,oldname) {
 #' Get catalog information
 #'
 #' This function can be used to get information from an OData catalog.
+#' @param root Character string with root of structure. Default NULL i.e. determined by the last use of \code{odataR_set_root} and if never used \code{'https://opendata.cbs.nl'}
 #' @param type Type of catalog information. This type can be one of:
 #' \itemize{
 #'  \item \code{NULL} : a \code{tibble} with the various types in this catalog \cr
@@ -237,14 +272,25 @@ odataR_drop <- function (df,oldname) {
 #' df = odataR_get_cat(type='Tables_Themes')
 #' }
 
-odataR_get_cat <- function(type='Tables',query=NULL,debug=F) {
-	odataR_query(odataR_get_root_catalog(type),query,debug=debug)
+odataR_get_cat <- function(
+    root=NULL,
+    type='Tables',
+    query=NULL,
+    debug=F) {
+	if (is.null(type) || 
+			type %in% c('Tables','Featured','Table_Featured','Themes','Table_Themes')) {
+		err_msg = 'invalid catalog query'
+	} else {
+		err_msg = 'invalid catalog type' 
+	}
+  if (!is.null(root) ) odataR::odataR_set_root(root,debug=debug)
+	odataR_query(odataR_get_root_catalog(type),query,debug=debug,err_msg=err_msg)
 }
 
 #' Get meta data about table
 #'
 #' This function can be used to get information about an OData table.
-#' @param root Root of data structure
+#' @param root Character string with root of structure. Default NULL i.e. determined by the last use of \code{odataR_set_root} and if never used \code{'https://opendata.cbs.nl'}
 #' @param table_id Identification of table
 #' @param metatype indicates the type of metadata that will be retrieved. Possible values are:
 #' \itemize{
@@ -280,34 +326,43 @@ odataR_get_cat <- function(type='Tables',query=NULL,debug=F) {
 #' }
 
 odataR_get_meta <- function(
-		root     = odataR_get_root_data(),
+		root     = NULL,
 		table_id = NULL,
 		metatype = NULL,
 		query    = NULL,
 		debug    =FALSE
 	) {
+  if (!is.null(root) ) odataR::odataR_set_root(root,debug=debug)
+  root     = odataR::odataR_get_root_data()
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
-	subtabt  = odataR_query(bname,debug=debug)
+	err_msg  = 'No data found for this "table_id" in this catalog'
+	subtabt  = odataR_query(bname,debug=debug,err_msg=err_msg)
 	if (!('url' %in% names(subtabt))) return(dplyr::data_frame())
 	if (is.null(metatype) | length(metatype) == 0)   return(subtabt)
 	subtabs  = subtabt$url
 	names(subtabs) = subtabt$name
 	if (metatype == 'TableInfos') {
-		return(odataR_query(subtabs['TableInfos'],query,debug=debug))
+	  err_msg  = paste0('Internal error in package "odataR" :',subtabs['TableInfos'])
+		return(odataR_query(subtabs['TableInfos'],query,debug=debug,err_msg=err_msg))
 	}
 	if (metatype == 'CategoryGroups') {
 		if (!('CategoryGroups' %in% names(subtabs))) return(dplyr::data_frame())
-		return(odataR_query(subtabs['CategoryGroups'],query,debug=debug))
+	  err_msg  = paste0('Internal error in package "odataR" :',subtabs['CategoryGroups'])
+		return(odataR_query(subtabs['CategoryGroups'],query,debug=debug,err_msg=err_msg))
 	}
+	err_msg  = paste0('Internal error in package "odataR" :',subtabs['CategoryGroups'])
 	if (metatype == 'DataProperties') {
-		return(odataR_query(subtabs['DataProperties'],query,debug=debug))
+		return(odataR_query(subtabs['DataProperties'],query,debug=debug,err_msg=err_msg))
 	}
 	else {
-		props    = odataR_query(subtabs['DataProperties'],debug=debug)
+		props    = odataR_query(subtabs['DataProperties'],debug=debug,err_msg=err_msg)
 	}
 	dv       = dplyr::filter(props, Type %in% c('Dimension', 'TimeDimension', 'GeoDimension'))
 	if (metatype %in% dv$Key) {
-		return(odataR_query(subtabs[metatype],query,debug=debug))
+	  err_msg  = paste0('Internal error in package "odataR" :',subtabs[metatype])
+		return(odataR_query(subtabs[metatype],query,debug=debug,err_msg=err_msg))
+	} else {
+	  err_msg  = paste0('unknown metatype : ',metatype )
+	  return(odataR_query(NULL,NULL,debug=F,err_msg=err_msg)) # force error
 	}
-	else return(dplyr::data_frame())
 }

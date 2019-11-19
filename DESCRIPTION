@@ -1,7 +1,7 @@
 Package: odataR
 Type: Package
 Title: Read access to OData information
-Version: 0.1.2
+Version: 0.1.3
 Authors@R: 
     c(person(given = "Han",
              family = "Oostdijk",
@@ -18,7 +18,9 @@ Imports:
     jsonlite,
     dplyr,
     rlang
-RoxygenNote: 6.1.1
-Suggests: knitr,
-    rmarkdown
+RoxygenNote: 7.0.0
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 2.1.0)
 VignetteBuilder: knitr

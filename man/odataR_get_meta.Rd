@@ -4,11 +4,16 @@
 \alias{odataR_get_meta}
 \title{Get meta data about table}
 \usage{
-odataR_get_meta(root = odataR_get_root_data(), table_id = NULL,
-  metatype = NULL, query = NULL, debug = FALSE)
+odataR_get_meta(
+  root = NULL,
+  table_id = NULL,
+  metatype = NULL,
+  query = NULL,
+  debug = FALSE
+)
 }
 \arguments{
-\item{root}{Root of data structure}
+\item{root}{Character string with root of structure. Default NULL i.e. determined by the last use of \code{odataR_set_root} and if never used \code{'https://opendata.cbs.nl'}}
 
 \item{table_id}{Identification of table}
 

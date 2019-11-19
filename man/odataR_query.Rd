@@ -4,7 +4,7 @@
 \alias{odataR_query}
 \title{Retrieve OData (sub) table}
 \usage{
-odataR_query(odata_url, odata_query = NULL, debug = F)
+odataR_query(odata_url, odata_query = NULL, debug = F, err_msg = NULL)
 }
 \arguments{
 \item{odata_url}{Character string with the requested url}
@@ -12,6 +12,8 @@ odataR_query(odata_url, odata_query = NULL, debug = F)
 \item{odata_query}{Character string with the query to attach to the url}
 
 \item{debug}{Boolean indicating if the \code{odata_url} and \code{odata_query} argument will be printed (default FALSE)}
+
+\item{err_msg}{Character string with message to display in case of error. Default \code{NULL}}
 }
 \description{
 This is a low level function used to retrieve OData data. The high level functions (as e.g.  \code{\link{odataR_get_table}}) convert the user specification to one or more calls to \code{\link{odataR_query}} with the appropriate \code{url} and \code{query}. Normally not used by the occasional user.
