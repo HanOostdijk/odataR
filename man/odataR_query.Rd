@@ -2,19 +2,44 @@
 % Please edit documentation in R/odataR_code.R
 \name{odataR_query}
 \alias{odataR_query}
+\alias{odataR_query2}
 \title{Retrieve OData (sub) table}
 \usage{
-odataR_query(odata_url, odata_query = NULL, debug = F, err_msg = NULL)
+odataR_query(
+  odata_url,
+  odata_query = NULL,
+  debug = F,
+  err_msg = NULL,
+  response_only = F
+)
+
+odataR_query2(odata_url, debug = F, err_msg = NULL, response_only = F)
 }
 \arguments{
-\item{odata_url}{Character string with the requested url}
+\item{odata_url}{Character string with the requested url (and in case of \code{odataR_query2} the attached query)}
 
-\item{odata_query}{Character string with the query to attach to the url}
+\item{odata_query}{Character string with the query to attach to the url (not used in case of \code{odataR_query2})}
 
-\item{debug}{Boolean indicating if the \code{odata_url} and \code{odata_query} argument will be printed (default FALSE)}
+\item{debug}{Boolean indicating if the \code{odata_url} and \code{odata_query} argument will be printed. Default \code{FALSE}}
 
 \item{err_msg}{Character string with message to display in case of error. Default \code{NULL}}
+
+\item{response_only}{Boolean indicating that the result of this function should be the response object for the OData call and not the unpacked table. Could be useful for debugging. Default \code{FALSE}}
 }
 \description{
-This is a low level function used to retrieve OData data. The high level functions (as e.g.  \code{\link{odataR_get_table}}) convert the user specification to one or more calls to \code{\link{odataR_query}} with the appropriate \code{url} and \code{query}. Normally not used by the occasional user.
+\code{odataR_query} is a low level function used to retrieve OData data. The high level functions (as e.g.  \code{\link{odataR_get_table}}) convert the user specification to one or more calls to \code{odataR_query} with the appropriate \code{url} and \code{query} . \cr
+\code{odataR_query2} is similar to \code{odataR_query}. Actually \code{odataR_query2} is called by \code{odataR_query} after the full url is created by concatenating the 'url' and 'query' part. \cr
+Normally these functions are not directly used by the occasional user.
+}
+\examples{
+\dontrun{
+odataR_get_cat(query='$count',debug=T) # is executed as 
+odataR_query(
+   odata_url="https://opendata.cbs.nl/ODataCatalog/Tables",
+   odata_query ="$count",
+   )                                   # is executed as 
+odataR_query2(
+   odata_url="https://opendata.cbs.nl/ODataCatalog/Tables/$count"
+   )
+}
 }

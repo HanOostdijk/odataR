@@ -38,7 +38,8 @@ odataR_set_root <- function (root=NULL,debug=F) {
 #' is not called yet this will be done first with the default \code{https://opendata.cbs.nl} (the root for the CBS Statistics Netherlands structures).
 #' @export
 #' @examples
-#' odataR_get_root()
+#' odataR_set_root()
+#' @name odataR_get_root
 #' @seealso \code{\link{odataR_set_root}}
 odataR_get_root <- function () {
   root = .odataR_options$root

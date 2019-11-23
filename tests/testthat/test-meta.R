@@ -2,10 +2,6 @@
 odataR::odataR_set_root('http://dataderden.cbs.nl')
 
 # general tests
-test_that("message given incorrect root ", {
-  expect_error(odataR::odataR_get_meta(root='ccc'), 
-               regexp = 'invalid value for root')
-})
 
 test_that("message given incorrect table_id ", {
   expect_error(odataR::odataR_get_meta(table_id='xx'), 

@@ -11,7 +11,7 @@ Determines from which structure data and catalog information will be extracted. 
 is not called yet this will be done first with the default \code{https://opendata.cbs.nl} (the root for the CBS Statistics Netherlands structures).
 }
 \examples{
-odataR_get_root()
+odataR_set_root()
 }
 \seealso{
 \code{\link{odataR_set_root}}

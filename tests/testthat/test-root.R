@@ -24,7 +24,13 @@ test_that("specific root is correctly get", {
 })
 
 test_that("message given for non OData url ", {
-  expect_error(odataR::odataR_set_root('xx'), regexp = 'invalid value for root')
+  expect_error(odataR::odataR_set_root('xx'), 
+               regexp = 'Could not resolve host')
+})
+
+test_that("message given for non OData url ", {
+  expect_error(odataR::odataR_set_root('https://www.hanoostdijk.nl'), 
+               regexp = 'invalid value for root')
 })
 
 x=odataR::odataR_get_root()

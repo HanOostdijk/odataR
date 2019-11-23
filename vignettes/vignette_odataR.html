@@ -13,7 +13,7 @@
 
 <meta name="author" content="Han Oostdijk" />
 
-<meta name="date" content="2019-11-13" />
+<meta name="date" content="2019-11-23" />
 
 <title>odataR for Statistics Netherlands data</title>
 
@@ -343,7 +343,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">odataR for Statistics Netherlands data</h1>
 <h4 class="author">Han Oostdijk</h4>
-<h4 class="date">2019-11-13</h4>
+<h4 class="date">2019-11-23</h4>
 
 
 
@@ -398,16 +398,16 @@ But assuming that we don’t know this, we have to use the catalog to find out w
 Apart from viewing the catalog we can also do a query on the catalog. In the next code section we show how to retrieve the whole catalog in data.frame <code>cbscat</code> and to check which describing elements (fields) it contains by looking at the first record in the catalog:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>cbscat =<span class="st"> </span><span class="kw">odataR_get_cat</span>()</span>
 <span id="cb5-2"><a href="#cb5-2"></a>(<span class="dt">dimcat =</span> <span class="kw">dim</span>(cbscat))</span>
-<span id="cb5-3"><a href="#cb5-3"></a><span class="co">#&gt; [1] 4680   26</span></span></code></pre></div>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="co">#&gt; [1] 4684   26</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">str</span>(cbscat[<span class="dv">1</span>,]</span></code></pre></div>
 <pre><code>#&gt; &#39;data.frame&#39;:    1 obs. of  26 variables:
 #&gt;  $ Updated            : chr &quot;2019-11-08T02:00:00&quot;
 #&gt;  $ ID                 : int 0
 #&gt;  $ Identifier         : chr &quot;83583NED&quot;
-#&gt;  $ Title              : chr &quot;Banen van werknemers; bedrijfsgrootte en economisc&quot;| __truncated__
+#&gt;  $ Title              : chr &quot;Banen van werknemers; bedrijfsgrootte en economische activiteit (SBI2008) &quot;
 #&gt;  $ ShortTitle         : chr &quot;Banen van werknemers; bedrijfsgrootte&quot;
-#&gt;  $ ShortDescription   : chr &quot;\nDeze tabel geeft informatie over het gemiddeld a&quot;| __truncated__
-#&gt;  $ Summary            : chr &quot;Gemiddeld aantal banen van werknemers in december &quot;| __truncated__
+#&gt;  $ ShortDescription   : chr &quot;\nDeze tabel geeft informatie over het gemiddeld aantal banen van werknemers in december naar bedrijf&quot;| __truncated__
+#&gt;  $ Summary            : chr &quot;Gemiddeld aantal banen van werknemers in december per bedrijfsgrootte,\nbedrijfstakken en branches SBI2008&quot;
 #&gt;  $ Modified           : chr &quot;2019-11-08T02:00:00&quot;
 #&gt;  $ MetaDataModified   : chr &quot;2019-11-08T02:00:00&quot;
 #&gt;  $ ReasonDelivery     : chr &quot;Actualisering&quot;
@@ -418,16 +418,16 @@ Apart from viewing the catalog we can also do a query on the catalog. In the nex
 #&gt;  $ Catalog            : chr &quot;CBS&quot;
 #&gt;  $ Frequency          : chr &quot;Perjaar&quot;
 #&gt;  $ Period             : chr &quot;2010 december - 2018 december&quot;
-#&gt;  $ SummaryAndLinks    : chr &quot;Gemiddeld aantal banen van werknemers in december &quot;| __truncated__
+#&gt;  $ SummaryAndLinks    : chr &quot;Gemiddeld aantal banen van werknemers in december per bedrijfsgrootte,&lt;br /&gt;bedrijfstakken en branche&quot;| __truncated__
 #&gt;  $ ApiUrl             : chr &quot;https://opendata.cbs.nl/ODataApi/OData/83583NED&quot;
 #&gt;  $ FeedUrl            : chr &quot;https://opendata.cbs.nl/ODataFeed/OData/83583NED&quot;
-#&gt;  $ DefaultPresentation: chr &quot;ts=1572875720081&amp;graphtype=Table&amp;r=Perioden,Bedrij&quot;| __truncated__
-#&gt;  $ DefaultSelection   : chr &quot;$filter=((Bedrijfsgrootte eq &#39;T001097&#39;) or (Bedrij&quot;| __truncated__
+#&gt;  $ DefaultPresentation: chr &quot;ts=1572875720081&amp;graphtype=Table&amp;r=Perioden,BedrijfstakkenBranchesSBI2008&amp;k=Topics,Bedrijfsgrootte&quot;
+#&gt;  $ DefaultSelection   : chr &quot;$filter=((Bedrijfsgrootte eq &#39;T001097&#39;) or (Bedrijfsgrootte eq &#39;WN19044&#39;) or (Bedrijfsgrootte eq &#39;WN1&quot;| __truncated__
 #&gt;  $ GraphTypes         : chr &quot;Table,Bar,Line&quot;
 #&gt;  $ RecordCount        : int 6696
 #&gt;  $ ColumnCount        : int 4
 #&gt;  $ SearchPriority     : chr &quot;2&quot;</code></pre>
-<p>From this we see that the catalog has 4680 rows and 26 columns and that the field <em>ShortDescription</em> is probably suited to do a query on bevolking (population), leeftijd (age) and regio (region):</p>
+<p>From this we see that the catalog has 4684 rows and 26 columns and that the field <em>ShortDescription</em> is probably suited to do a query on bevolking (population), leeftijd (age) and regio (region):</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>x =<span class="st"> </span><span class="kw">odataR_get_cat</span>(<span class="dt">query =</span> <span class="kw">paste0</span>(</span>
 <span id="cb8-2"><a href="#cb8-2"></a>  <span class="st">&quot;?$filter=substringof(&#39;leeftijd&#39;,tolower(ShortDescription))&quot;</span>,</span>
 <span id="cb8-3"><a href="#cb8-3"></a>  <span class="st">&quot;and substringof(&#39;regio&#39;,tolower(ShortDescription)) &quot;</span>, </span>
@@ -917,28 +917,25 @@ Of course the table with identification code <em>03759ned</em> is in the table.<
 <span id="cb14-6"><a href="#cb14-6"></a><span class="co">#&gt; Matrix products: default</span></span>
 <span id="cb14-7"><a href="#cb14-7"></a><span class="co">#&gt; </span></span>
 <span id="cb14-8"><a href="#cb14-8"></a><span class="co">#&gt; locale:</span></span>
-<span id="cb14-9"><a href="#cb14-9"></a><span class="co">#&gt; [1] LC_COLLATE=English_United States.1252 </span></span>
-<span id="cb14-10"><a href="#cb14-10"></a><span class="co">#&gt; [2] LC_CTYPE=English_United States.1252   </span></span>
-<span id="cb14-11"><a href="#cb14-11"></a><span class="co">#&gt; [3] LC_MONETARY=English_United States.1252</span></span>
-<span id="cb14-12"><a href="#cb14-12"></a><span class="co">#&gt; [4] LC_NUMERIC=C                          </span></span>
-<span id="cb14-13"><a href="#cb14-13"></a><span class="co">#&gt; [5] LC_TIME=English_United States.1252    </span></span>
+<span id="cb14-9"><a href="#cb14-9"></a><span class="co">#&gt; [1] LC_COLLATE=English_United States.1252  LC_CTYPE=English_United States.1252    LC_MONETARY=English_United States.1252</span></span>
+<span id="cb14-10"><a href="#cb14-10"></a><span class="co">#&gt; [4] LC_NUMERIC=C                           LC_TIME=English_United States.1252    </span></span>
+<span id="cb14-11"><a href="#cb14-11"></a><span class="co">#&gt; </span></span>
+<span id="cb14-12"><a href="#cb14-12"></a><span class="co">#&gt; attached base packages:</span></span>
+<span id="cb14-13"><a href="#cb14-13"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span id="cb14-14"><a href="#cb14-14"></a><span class="co">#&gt; </span></span>
-<span id="cb14-15"><a href="#cb14-15"></a><span class="co">#&gt; attached base packages:</span></span>
-<span id="cb14-16"><a href="#cb14-16"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span id="cb14-15"><a href="#cb14-15"></a><span class="co">#&gt; other attached packages:</span></span>
+<span id="cb14-16"><a href="#cb14-16"></a><span class="co">#&gt; [1] stringr_1.4.0 dplyr_0.8.3   magrittr_1.5  ggplot2_3.2.1 knitr_1.26    odataR_0.1.3 </span></span>
 <span id="cb14-17"><a href="#cb14-17"></a><span class="co">#&gt; </span></span>
-<span id="cb14-18"><a href="#cb14-18"></a><span class="co">#&gt; other attached packages:</span></span>
-<span id="cb14-19"><a href="#cb14-19"></a><span class="co">#&gt; [1] stringr_1.4.0 dplyr_0.8.3   magrittr_1.5  ggplot2_3.2.1 knitr_1.25   </span></span>
-<span id="cb14-20"><a href="#cb14-20"></a><span class="co">#&gt; [6] odataR_0.1.2 </span></span>
-<span id="cb14-21"><a href="#cb14-21"></a><span class="co">#&gt; </span></span>
-<span id="cb14-22"><a href="#cb14-22"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span id="cb14-23"><a href="#cb14-23"></a><span class="co">#&gt;  [1] Rcpp_1.0.3       tidyselect_0.2.5 munsell_0.5.0    colorspace_1.4-1</span></span>
-<span id="cb14-24"><a href="#cb14-24"></a><span class="co">#&gt;  [5] R6_2.4.0         rlang_0.4.1      highr_0.8        tools_3.6.0     </span></span>
-<span id="cb14-25"><a href="#cb14-25"></a><span class="co">#&gt;  [9] grid_3.6.0       gtable_0.3.0     xfun_0.10        withr_2.1.2     </span></span>
-<span id="cb14-26"><a href="#cb14-26"></a><span class="co">#&gt; [13] htmltools_0.4.0  assertthat_0.2.1 yaml_2.2.0       lazyeval_0.2.2  </span></span>
-<span id="cb14-27"><a href="#cb14-27"></a><span class="co">#&gt; [17] digest_0.6.22    tibble_2.1.3     crayon_1.3.4     purrr_0.3.3     </span></span>
-<span id="cb14-28"><a href="#cb14-28"></a><span class="co">#&gt; [21] curl_4.2         glue_1.3.1       evaluate_0.14    rmarkdown_1.16  </span></span>
-<span id="cb14-29"><a href="#cb14-29"></a><span class="co">#&gt; [25] labeling_0.3     stringi_1.4.3    compiler_3.6.0   pillar_1.4.2    </span></span>
-<span id="cb14-30"><a href="#cb14-30"></a><span class="co">#&gt; [29] scales_1.0.0     jsonlite_1.6     pkgconfig_2.0.3</span></span></code></pre></div>
+<span id="cb14-18"><a href="#cb14-18"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span id="cb14-19"><a href="#cb14-19"></a><span class="co">#&gt;  [1] Rcpp_1.0.3        highr_0.8         pillar_1.4.2      compiler_3.6.0    prettyunits_1.0.2 remotes_2.1.0    </span></span>
+<span id="cb14-20"><a href="#cb14-20"></a><span class="co">#&gt;  [7] tools_3.6.0       testthat_2.3.0    digest_0.6.23     pkgbuild_1.0.6    pkgload_1.0.2     tibble_2.1.3     </span></span>
+<span id="cb14-21"><a href="#cb14-21"></a><span class="co">#&gt; [13] gtable_0.3.0      jsonlite_1.6      memoise_1.1.0     evaluate_0.14     pkgconfig_2.0.3   rlang_0.4.2      </span></span>
+<span id="cb14-22"><a href="#cb14-22"></a><span class="co">#&gt; [19] cli_1.1.0         rstudioapi_0.10   curl_4.2          yaml_2.2.0        xfun_0.10         withr_2.1.2      </span></span>
+<span id="cb14-23"><a href="#cb14-23"></a><span class="co">#&gt; [25] httr_1.4.1        desc_1.2.0        fs_1.3.1          devtools_2.2.1    tidyselect_0.2.5  grid_3.6.0       </span></span>
+<span id="cb14-24"><a href="#cb14-24"></a><span class="co">#&gt; [31] rprojroot_1.3-2   glue_1.3.1        R6_2.4.1          processx_3.4.1    rmarkdown_1.17    sessioninfo_1.1.1</span></span>
+<span id="cb14-25"><a href="#cb14-25"></a><span class="co">#&gt; [37] purrr_0.3.3       callr_3.3.2       scales_1.0.0      backports_1.1.5   ps_1.3.0          clisymbols_1.2.0 </span></span>
+<span id="cb14-26"><a href="#cb14-26"></a><span class="co">#&gt; [43] ellipsis_0.3.0    htmltools_0.4.0   usethis_1.5.1     assertthat_0.2.1  colorspace_1.4-1  labeling_0.3     </span></span>
+<span id="cb14-27"><a href="#cb14-27"></a><span class="co">#&gt; [49] stringi_1.4.3     lazyeval_0.2.2    munsell_0.5.0     crayon_1.3.4</span></span></code></pre></div>
 </div>
 
 <script type="text/javascript">

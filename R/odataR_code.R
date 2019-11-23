@@ -27,66 +27,98 @@ NULL
 
 #' Retrieve OData (sub) table
 #'
-#' This is a low level function used to retrieve OData data. The high level functions (as e.g.  \code{\link{odataR_get_table}}) convert the user specification to one or more calls to \code{\link{odataR_query}} with the appropriate \code{url} and \code{query}. Normally not used by the occasional user. 
-#' @param odata_url Character string with the requested url
-#' @param odata_query Character string with the query to attach to the url
-#' @param debug Boolean indicating if the \code{odata_url} and \code{odata_query} argument will be printed (default FALSE)
-#' @param err_msg Character string with message to display in case of error. Default \code{NULL}
+#' \code{odataR_query} is a low level function used to retrieve OData data. The high level functions (as e.g.  \code{\link{odataR_get_table}}) convert the user specification to one or more calls to \code{odataR_query} with the appropriate \code{url} and \code{query} . \cr
+#' \code{odataR_query2} is similar to \code{odataR_query}. Actually \code{odataR_query2} is called by \code{odataR_query} after the full url is created by concatenating the 'url' and 'query' part. \cr
+#' Normally these functions are not directly used by the occasional user. 
 #' @name odataR_query
 #' @export
+#' @examples
+#' \dontrun{
+#' odataR_get_cat(query='$count',debug=T) # is executed as 
+#' odataR_query(
+#'    odata_url="https://opendata.cbs.nl/ODataCatalog/Tables",
+#'    odata_query ="$count",
+#'    )                                   # is executed as 
+#' odataR_query2(
+#'    odata_url="https://opendata.cbs.nl/ODataCatalog/Tables/$count"
+#'    )
+#' }
 
-odataR_query <- function (odata_url,odata_query=NULL,debug=F,err_msg=NULL) {
-  # do a call to the OData API
-	my_stop <- function() {
-	  # local error catch function
-		e <- geterrmessage()
-		e <- strsplit(e,"\n")[[1]][-1]
-		cat(e)
-	}
-	# activate this error catch function
-	o1=options(error = my_stop,show.error.messages=FALSE)
-	# make sure standard error processing reset after leaving function
-	on.exit(expr=options(o1))
-	# adjust query and build full url
+odataR_query <- function (odata_url,odata_query=NULL,
+             debug=F,err_msg=NULL,response_only=F) {
+  
+	# adjust query 
 	a_query   = adjust_query(odata_query)
-	odata_url1 = paste0(odata_url,a_query)
 	# print debugging statements
 	if (debug) {
 		cat(paste0('debug odataR_query url   : ',odata_url,'\n'))
 		cat(paste0('debug odataR_query query : ',odata_query,'\n'))
-		cat(paste0('debug odataR_query aquery: ',a_query,'\n\n'))
+		cat(paste0('debug odataR_query aquery: ',a_query,'\n'))
 	}
-	# prepare error message in case of problems
-	err_msg1  <- ifelse(is.null(err_msg), 'Error in url (probably invalid query)',err_msg)
-	hoqc_chr <- err_msg1
-	# do the (first of the ) actuals API call(s)
-	tryCatch(hoqc_chr  <- jsonlite::fromJSON(odata_url1), error = function(e) e, finally = {})
-	if (identical(hoqc_chr, err_msg1)){
-	  # if hoqc_chr not changed this is error: report it
-		value = ifelse(is.null(err_msg), paste(hoqc_chr,':',odata_url1),err_msg)
-		stop(value)
-		}
-	else if (is.numeric(hoqc_chr))
-	  # if numeric then return (e.g. in case of $count)
-		value = hoqc_chr
-	else if (is.null(hoqc_chr[['odata.error']])) {
-	  # when no OData error we get actual data in value
-		value = hoqc_chr[['value']]
-		value = as.data.frame(value)
-		# check if there is more data to collect 
-	  nextLink = hoqc_chr[['odata.nextLink']]
-	  while (!is.null(nextLink)){
-	  	# retrieve more data, append to earlier data and check again for more data
-	  	hoqc_chr  <- jsonlite::fromJSON(nextLink)
-	  	value = rbind(value,as.data.frame(hoqc_chr[['value']]))
-	  	nextLink = hoqc_chr[['odata.nextLink']]
-	  }
-	}
-	else {
-	  value = hoqc_chr[['odata.error']][['msg']]
-	  stop(value)
-	  }
-	return(value)
+	url1 = paste0(odata_url, a_query)
+	odataR_query2(url1, debug=debug, 
+	       err_msg = err_msg, response_only=response_only)
+}
+#' @param odata_url Character string with the requested url (and in case of \code{odataR_query2} the attached query)
+#' @param odata_query Character string with the query to attach to the url (not used in case of \code{odataR_query2}) 
+#' @param debug Boolean indicating if the \code{odata_url} and \code{odata_query} argument will be printed. Default \code{FALSE} 
+#' @param err_msg Character string with message to display in case of error. Default \code{NULL}
+#' @param response_only Boolean indicating that the result of this function should be the response object for the OData call and not the unpacked table. Could be useful for debugging. Default \code{FALSE}   
+#' @rdname odataR_query
+#' @name odataR_query2
+#' @export
+#' 
+odataR_query2 <- function (odata_url,debug=F, 
+            err_msg = NULL,response_only=F) {
+  o1=options(error = my_stop,show.error.messages=FALSE)
+  on.exit(expr=options(o1))
+  if (debug)
+    on.exit(
+      expr=cat(paste('debug odataR_query2 :',
+             numcalls, 'call(s) to \n\t',odata_url, '\n\n')) ,
+      add=T)
+  err_msg1  <- ifelse(is.null(err_msg), 'Error in OData request',err_msg)
+  numcalls = 1
+  res1 = httr::GET(odata_url)
+  if (response_only == TRUE) {
+    return(res1)
+  }
+  html1 = grepl('html',httr::headers(res1)$`content-type`,fixed=T )
+  if (httr::http_error(res1) || html1)
+    stop(err_msg1)
+  txt1 = httr::content(res1, as = "text",encoding='UTF-8')
+  tryCatch(
+    res <- jsonlite::fromJSON(txt1),
+    error = function(e) stop(err_msg1),
+    finally = {}
+  )
+  if (is.numeric(res))
+    # if numeric then return (e.g. in case of $count)
+    value = res
+  else if (!is.null(res[['odata.error']])) 
+    stop(err_msg1)
+  else {
+    # when no OData error we get actual data in value
+    value = res[['value']]
+    value = as.data.frame(value)
+    # check if there is more data to collect 
+    nextLink = res[['odata.nextLink']]
+    while (!is.null(nextLink)){
+      # retrieve more data, append to earlier data and check again for more data
+      res  <- jsonlite::fromJSON(nextLink)
+      numcalls = numcalls + 1
+      value = rbind(value,as.data.frame(res[['value']]))
+      nextLink = res[['odata.nextLink']]
+    }
+  }
+  value
+}
+
+my_stop <- function() {
+  e <- geterrmessage()
+  # e <- strsplit(e,":")[[1]][-1]
+  e <- substring(e,regexpr(":", e)+2) 
+  cat(e)
 }
 
 #' Get table data
@@ -332,6 +364,8 @@ odataR_get_meta <- function(
 		query    = NULL,
 		debug    =FALSE
 	) {
+  o1=options(error = my_stop,show.error.messages=FALSE)
+  on.exit(expr=options(o1))
   if (!is.null(root) ) odataR::odataR_set_root(root,debug=debug)
   root     = odataR::odataR_get_root_data()
 	bname    = paste0(root, '/', gsub(" ", "", table_id))
@@ -362,7 +396,6 @@ odataR_get_meta <- function(
 	  err_msg  = paste0('Internal error in package "odataR" :',subtabs[metatype])
 		return(odataR_query(subtabs[metatype],query,debug=debug,err_msg=err_msg))
 	} else {
-	  err_msg  = paste0('unknown metatype : ',metatype )
-	  return(odataR_query(NULL,NULL,debug=F,err_msg=err_msg)) # force error
+	  stop( paste0('unknown metatype : ',metatype ))
 	}
 }
