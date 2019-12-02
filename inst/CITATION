@@ -1,0 +1,22 @@
+
+# year <- sub("-.*", "", meta$Date)
+year <- sub("-.*", "", meta$Built)
+year <- sub("^.*; ", "", year)
+note1 <- sprintf("R package version %s", meta$Version)
+note2 <- sprintf("(v%s)", meta$Version)
+
+bibentry(
+  bibtype  = "Misc",
+  title    = "{odataR}: {P}ackage to read OData information",
+  author   = person(given = "Han",
+             family = "Oostdijk"),
+  year     = year,
+  note     = note1,
+  url      = 'https://github.com/HanOostdijk/odataR',
+  header  = "To cite odataR in publications use:",
+  textVersion = paste0(
+   'Han Oostdijk (',year,') ORCID = "0000-0001-6710-4566". \n',
+   'odataR: Package to read OData information ',
+   note2,' https://github.com/HanOostdijk/odataR'
+  )
+)
