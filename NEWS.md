@@ -1,5 +1,10 @@
 # odataR
 
+## odataR 0.1.4
+
+* 09may2020   
+   + rebuild for R 4.0
+
 ## odataR 0.1.3
 
 * 16nov2019   

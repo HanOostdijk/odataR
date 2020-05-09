@@ -1,6 +1,6 @@
 # odataR
 
-This package gives access to information made available with the OData interface.
+This package gives access to information made available with the OData (V3) interface.
 It is tested on the information from Statistics Netherlands and therefore the root has as default the value https://opendata.cbs.nl .  
 Another root can be set with the function **odataR_set_root** .  
 The most important function is **odataR_get_table** that downloads for a given table_id the main table and uses its subtables to decode dimensions (as `Region` and `Periods`).  With the function **odataR_get_meta** the meta information of a table can be retrieved. Another important function is **odataR_get_cat** that gives an overview of the available tables in tibble (data_frame) format.
